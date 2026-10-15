@@ -1,0 +1,635 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dsh:memory:candidate:0.2",
+  "title": "DSH Linux Memory Candidate v0.2",
+  "description": "Linux adapter: expected_generation matches the existing per-target generation; target_id=null requires generation=0. Host owns identity, task and publication. See skill reference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation_id",
+    "expected_generation",
+    "target_id",
+    "kind",
+    "title",
+    "body",
+    "origin",
+    "verification",
+    "evidence_refs",
+    "accept_scope",
+    "unresolved",
+    "details"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2"
+    },
+    "operation_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "expected_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "target_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "kind": {
+      "enum": [
+        "observation",
+        "claim",
+        "hypothesis",
+        "experiment",
+        "constraint",
+        "method_candidate"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8000
+    },
+    "origin": {
+      "enum": [
+        "observed",
+        "inferred"
+      ]
+    },
+    "verification": {
+      "enum": [
+        "untested",
+        "tested",
+        "accepted"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "accept_scope": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "acceptance_source_refs": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      }
+    },
+    "dependency_refs": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id",
+          "revision"
+        ],
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "observed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "valid_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "valid_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "recheck_after": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "details": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "verification": {
+            "enum": [
+              "tested",
+              "accepted"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verification": {
+            "const": "accepted"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "acceptance_source_refs"
+        ],
+        "properties": {
+          "accept_scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptance_source_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "observation"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "conditions",
+              "observation_level"
+            ],
+            "properties": {
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              },
+              "observation_level": {
+                "enum": [
+                  "source_output",
+                  "target_measurement"
+                ]
+              }
+            }
+          },
+          "evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "claim"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "proposition",
+              "conditions"
+            ],
+            "properties": {
+              "proposition": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "hypothesis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "proposition",
+              "test_plan",
+              "discriminating_outcomes"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "proposed",
+                  "testing",
+                  "supported",
+                  "refuted",
+                  "deferred"
+                ]
+              },
+              "proposition": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "test_plan": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "discriminating_outcomes": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "work_refs": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "experiment"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "execution_status",
+              "outcome",
+              "conditions",
+              "input_refs",
+              "tools",
+              "interventions",
+              "observations",
+              "tested_propositions",
+              "excludes",
+              "does_not_exclude"
+            ],
+            "properties": {
+              "execution_status": {
+                "enum": [
+                  "completed",
+                  "failed",
+                  "blocked",
+                  "interrupted",
+                  "unknown"
+                ]
+              },
+              "outcome": {
+                "enum": [
+                  "supports",
+                  "contradicts",
+                  "inconclusive",
+                  "no_effect"
+                ]
+              },
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              },
+              "input_refs": {
+                "type": "array",
+                "maxItems": 40,
+                "items": {
+                  "$ref": "#/$defs/sourceRef"
+                }
+              },
+              "tools": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 400
+                }
+              },
+              "interventions": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "observations": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              },
+              "tested_propositions": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "excludes": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "does_not_exclude": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "constraint"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "conditions",
+              "constraint_type"
+            ],
+            "properties": {
+              "conditions": {
+                "$ref": "#/$defs/conditions"
+              },
+              "constraint_type": {
+                "enum": [
+                  "environment",
+                  "task_requirement",
+                  "resource",
+                  "data_handling"
+                ]
+              }
+            }
+          },
+          "evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "method_candidate"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "details": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "preconditions",
+              "failure_boundaries",
+              "case_refs",
+              "redaction_status"
+            ],
+            "properties": {
+              "preconditions": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "failure_boundaries": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "case_refs": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "redaction_status": {
+                "enum": [
+                  "not_reviewed",
+                  "reviewed"
+                ]
+              }
+            }
+          },
+          "evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "hypothesis"
+          },
+          "details": {
+            "required": [
+              "status"
+            ],
+            "properties": {
+              "status": {
+                "enum": [
+                  "supported",
+                  "refuted"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "evidence_refs": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "locator"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "content_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "environment_ref",
+        "analysis_revision_ref"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "environment_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "analysis_revision_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    }
+  }
+}

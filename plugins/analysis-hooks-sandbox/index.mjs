@@ -1,0 +1,197 @@
+/** Dedicated state capability for analysis hooks; ordinary tools keep their policy. */
+import fs from 'node:fs';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+
+const nativeRoot=process.env.DSH_NATIVE_PACKAGE_ROOT || '/opt/node24/lib/node_modules/@deepseek-ai/dsh';
+const nativeRequire=createRequire(path.join(nativeRoot,'package.json'));
+const bridge=await import(pathToFileURL(nativeRequire.resolve('@deepseek-ai/dsh-hooks-claude-code')).href);
+const {createUserMessage}=await import(pathToFileURL(nativeRequire.resolve('@deepseek-ai/dsh-llm')).href);
+export const name='analysis-hooks-sandbox';
+export const inject=['shell','sessionProjections','tools'];
+const quote=value=>"'"+String(value).replaceAll("'","'\\''")+"'";
+const ACTIONS=['health','init','list','status','bind','checkpoint','transition','target','artifact','record','lease','resource','events'];
+
+export async function apply(ctx,config){
+  const root=fs.realpathSync(config.dshHome || process.env.DSH_HOME || '/root/.dsh');
+  const state=path.join(root,'analysis-state');
+  fs.mkdirSync(state,{recursive:true,mode:0o700});
+  if(fs.realpathSync(state)!==state)throw new Error('analysis-state must be a real directory inside DSH_HOME');
+  const pluginRoot=fs.realpathSync(config.pluginRoot);
+  const python='/usr/bin/python3';
+  const runtime=path.join(root,'runtime/analysis-v1/session.py');
+  const expected=`python3 "${pluginRoot}/analysis_hook.py"`;
+  const prefix=`DSH_HOME=${quote(root)} DSH_ANALYSIS_STATE=${quote(state)} `;
+  const agents=new Map();
+  const health={status:'starting',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
+  const healthDir=path.join(state,'health');
+  fs.mkdirSync(healthDir,{recursive:true,mode:0o700});
+  const healthFile=path.join(healthDir,`host-${process.pid}.json`);
+  function saveHealth(){
+    const tmp=healthFile+'.tmp';
+    fs.writeFileSync(tmp,JSON.stringify(health,null,2),{mode:0o600});
+    fs.renameSync(tmp,healthFile);
+  }
+  saveHealth();
+  const shell=ctx.shell;
+  function request(command,options={}){
+    return shell.resolve({...options,command:prefix+command,
+      sandboxPolicy:{mode:'workspace-write',workspaceRoot:state},stdoutMaxBytes:512*1024});
+  }
+  async function runState(argv,options={}){
+    const command=[python,runtime,...argv].map(quote).join(' ');
+    return shell.run(request(command,{timeoutMs:10000,workdir:options.workdir || state,signal:options.signal}));
+  }
+  const children=new Map();
+  function captureAgent(event,first){
+    const agent=first?.agent || (event.startsWith('subagent/') ? children.get(first?.runId) || ctx.get('agents')?.get(first?.id) : undefined);
+    if(agent?.session?.header?.id)agents.set(agent.session.header.id,agent);
+    if(event==='subagent/start' && agent)children.set(first.runId,agent);
+    if(event==='subagent/end')children.delete(first?.runId);
+  }
+  const proxy=new Proxy(ctx,{
+    get(target,key){
+      if(key==='shell')return {
+        resolve(req){
+          if(req.command!==expected)throw new Error('analysis adapter accepts only its fixed hook entrypoint');
+          return request(req.command,req);
+        },
+        async run(spec){
+          let payload={},parsed={};
+          try{payload=JSON.parse(spec.stdin || '{}')}catch{}
+          let result;
+          try{result=await shell.run(spec)}catch(error){
+            const point=String(payload.hook_event_name || 'unknown');
+            health.calls++;health.failures++;health.status='degraded';
+            (health.points[point] ||= {ok:0,failed:0}).failed++;
+            health.lastFailure={at:new Date().toISOString(),event:point,error:String(error)};
+            saveHealth();ctx.logger.warn('analysis shell infrastructure failed: '+String(error));
+            agents.get(payload.session_id)?.inject(createUserMessage({content:[{type:'text',text:'[DSH 分析状态故障] 钩子未能执行，事件未持久化；请调用 analysis_session 的 health 检查。'}],source:{kind:'plugin',plugin:name}}));
+            throw error;
+          }
+          try{parsed=JSON.parse(result.stdout.text)}catch{}
+          const ok=result.exitCode===0 && parsed.analysisHealth?.status==='ok';
+          health.calls++;
+          const point=String(payload.hook_event_name || 'unknown');
+          const count=health.points[point] ||= {ok:0,failed:0};
+          if(ok){health.status='ok';health.lastSuccess=new Date().toISOString();count.ok++}
+          else{
+            health.status='degraded';health.failures++;count.failed++;
+            health.lastFailure={at:new Date().toISOString(),event:point,exitCode:result.exitCode,
+                                error:parsed.analysisHealth?.error || result.stderr.text.slice(-1200)};
+            ctx.logger.warn('analysis persistence degraded: '+health.lastFailure.error);
+            // Official CC bridge ignores structured stdout on exit 1. Deliver
+            // the already-produced fallback context directly, preserving rc=1.
+            const agent=agents.get(payload.session_id);
+            const text=parsed.hookSpecificOutput?.additionalContext || '[DSH 分析状态故障] 钩子执行失败，事件未可靠持久化；请调用 analysis_session 的 health。';
+            if(agent){
+              const signature=point+':'+health.lastFailure.error;
+              const last=agentWarnings.get(payload.session_id);
+              if(!last || last.signature!==signature || Date.now()-last.at>=60000){
+                agent.inject(createUserMessage({content:[{type:'text',text}],source:{kind:'plugin',plugin:name}}));
+                agentWarnings.set(payload.session_id,{signature,at:Date.now()});
+              }
+            }
+          }
+          health.lastSandbox=result.sandbox || null;
+          saveHealth();
+          return result;
+        }
+      };
+      if(key==='on')return (event,handler)=>ctx.on(event,(...args)=>{captureAgent(event,args[0]);return handler(...args)});
+      const value=Reflect.get(target,key,target);
+      return typeof value==='function'?value.bind(target):value;
+    }
+  });
+  const agentWarnings=new Map();
+  ctx.on('agent/disposed',({agent})=>{const id=agent?.session?.header?.id;agents.delete(id);agentWarnings.delete(id)});
+  // Reuse the installed bridge, including pairing, lifecycle and cancellation.
+  bridge.apply(proxy,{configPath:config.configPath,pluginRoot});
+
+  const allowed={
+    health:[],list:[],init:['goal','id','data'],status:[],bind:[],checkpoint:['data'],transition:['status','data'],
+    target:['id','data'],artifact:['path'],record:['kind','data'],lease:['action','resource','token','ttl'],
+    resource:['id','data'],events:['limit']
+  };
+  const tool={
+    name:'analysis_session',
+    description:'管理分析任务、目标代次、证据、检查点和资源状态。health 返回实际数据库与 hook 健康。专用状态能力；不能执行命令、改变沙箱或修改项目。',
+    parameters:{type:'object',properties:{action:{type:'string',enum:ACTIONS},task:{type:'string'},options:{type:'object',additionalProperties:true}},required:['action'],additionalProperties:false},
+    output:{schema:{type:'string'},render(_args,value){return [{type:'text',text:value}]}},
+    async execute(args,exec){
+      const agent=exec?.agent;
+      if(!agent?.session?.header?.id)throw new Error('analysis_session requires a calling session');
+      const action=args.action;
+      if(!ACTIONS.includes(action))throw new Error('unsupported state action');
+      const opts=args.options || {};
+      if(!opts || typeof opts!=='object' || Array.isArray(opts))throw new Error('options must be an object');
+      for(const key of Object.keys(opts))if(!allowed[action].includes(key))throw new Error('unsupported option: '+key);
+      if(opts.data!==undefined && (!opts.data || typeof opts.data!=='object' || Array.isArray(opts.data)))throw new Error('data must be an object');
+      const argv=[action];
+      if(!['health','init','list'].includes(action)){
+        if(typeof args.task!=='string' || !args.task || args.task.startsWith('-'))throw new Error('valid task ID required');
+        argv.push(args.task);
+      }
+      for(const [key,value] of Object.entries(opts)){
+        if(key!=='data' && !['string','number'].includes(typeof value))throw new Error('invalid option type: '+key);
+        argv.push('--'+key.replaceAll('_','-'),key==='data'?JSON.stringify(value):String(value));
+      }
+      // Host caller identity is authoritative, never an arbitrary model field.
+      if(action==='init' || action==='bind')argv.push('--session',agent.session.header.id);
+      if(action==='lease')argv.push('--owner',agent.session.header.id);
+      const evidence=action==='artifact'?opts.path:action==='record' && opts.kind==='evidence'?opts.data?.path:null;
+      if(evidence){
+        const workspace=fs.realpathSync(agent.session.header.cwd);
+        const actual=fs.realpathSync(path.resolve(workspace,evidence));
+        const relative=path.relative(workspace,actual);
+        if(relative.startsWith('..'+path.sep) || relative==='..' || path.isAbsolute(relative))throw new Error('evidence file must be inside the calling workspace');
+        if(action==='artifact')argv[argv.indexOf('--path')+1]=actual;
+        else argv[argv.indexOf('--data')+1]=JSON.stringify({...opts.data,path:actual});
+      }
+      const result=await runState(argv,{workdir:agent.session.header.cwd,signal:exec.signal});
+      let parsed;
+      try{parsed=JSON.parse(result.stdout.text)}catch{}
+      if(action==='health' && (result.exitCode!==0 || !parsed?.ok))return JSON.stringify({ok:false,result:{status:'degraded',error:parsed?.error || result.stderr.text.slice(-1000),state},hook:health});
+      if(!parsed)throw new Error('analysis state command failed: '+result.stderr.text.slice(-1000));
+      if(result.exitCode!==0 || !parsed.ok)throw new Error(parsed.error || result.stderr.text.slice(-1000));
+      return JSON.stringify(action==='health'?{...parsed,hook:health}:parsed);
+    }
+  };
+  ctx.effect(()=>ctx.tools.register(tool),'analysis: constrained state tool');
+
+  if(config.selfTest){
+    const result=await selfTest({ctx,shell,request,runState,root,state,expected,prefix,python,config});
+    health.selfTest=result;
+    if(result.ok && health.status==='starting')health.status='ready';
+    saveHealth();
+    if(!result.ok)throw new Error('analysis real-shell self-test failed: '+JSON.stringify(result));
+  }
+  // No background tool or root service is replaced; a row reload disposes
+  // only its own bridge listeners, detached hooks and state tool.
+}
+
+async function selfTest({ctx,shell,request,runState,root,state,expected,prefix,python,config}){
+  const sid='analysis-selftest-'+process.pid;
+  const payload={hook_event_name:'SessionStart',session_id:sid,cwd:'/root/src',source:'repair-selftest'};
+  const old=await shell.run(shell.resolve({command:prefix+expected,stdin:JSON.stringify(payload),workdir:'/root/src',timeoutMs:10000}));
+  const fixed=await shell.run(request(expected,{stdin:JSON.stringify(payload),workdir:'/root/src',timeoutMs:10000}));
+  let decoded={};try{decoded=JSON.parse(fixed.stdout.text)}catch{}
+  const db=await runState(['health']);
+  let dbDecoded={};try{dbDecoded=JSON.parse(db.stdout.text)}catch{}
+  const broken=await shell.run(request(`DSH_ANALYSIS_STATE='/proc/dsh-analysis-fault-probe' ${expected}`,{stdin:JSON.stringify(payload),workdir:'/root/src',timeoutMs:10000}));
+  let brokenDecoded={};try{brokenDecoded=JSON.parse(broken.stdout.text)}catch{}
+  const failureVisible=broken.exitCode===1 && brokenDecoded.analysisHealth?.status==='degraded' && brokenDecoded.hookSpecificOutput?.additionalContext?.includes('[DSH 分析会话 v1]') && brokenDecoded.hookSpecificOutput.additionalContext.includes('[DSH 分析状态故障]');
+  // An explicit state-only grant must still deny unrelated DSH files.
+  const outside=path.join(root,'runtime','.analysis-deny-probe-'+process.pid);
+  const probe=`${quote(python)} -c ${quote('from pathlib import Path; Path('+JSON.stringify(outside)+').write_text("unexpected")')}`;
+  const denied=await shell.run(request(probe,{workdir:'/root/src',timeoutMs:10000}));
+  const accidentallyWritten=fs.existsSync(outside);
+  if(accidentallyWritten)fs.unlinkSync(outside);
+  const report={ok:fixed.exitCode===0 && decoded.analysisHealth?.status==='ok' && dbDecoded.result?.status==='ok' && failureVisible===true && denied.exitCode!==0 && !accidentallyWritten,
+                defaultHookExit:old.exitCode,defaultPersistenceDenied:old.stderr.text.includes('analysis persistence degraded'),scopedHookExit:fixed.exitCode,scope:fixed.sandbox,
+                startupCard:decoded.hookSpecificOutput?.additionalContext?.includes('[DSH 分析会话 v1]')===true,
+                failureVisible,database:dbDecoded.result,unrelatedWriteDenied:denied.exitCode!==0 && !accidentallyWritten};
+  if(!report.startupCard)report.ok=false;
+  return report;
+}
