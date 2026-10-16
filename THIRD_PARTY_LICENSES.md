@@ -6,6 +6,7 @@
 |---|---|---|
 | [ljagiello/ctf-skills](https://github.com/ljagiello/ctf-skills) | MIT | ctf-web / ctf-misc / ctf-crypto 的知识框架与部分配方(经改造) |
 | [Cellebrite Labs ghidra-rpc](https://github.com/cellebrite-labs/ghidra-rpc) | MIT | `skills/ghidra-core/engine/ghidra-rpc` 执行引擎(vendored + dsh 补丁) |
+| [clearbluejar/pyghidra-mcp](https://github.com/clearbluejar/pyghidra-mcp) | Apache-2.0 | ghidra-rpc 内 GUI 启动器模式(`GuiPyGhidraMcpLauncher` 适配,随上游 vendored 带入) |
 | [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) | MIT | 逆向方法论框架 |
 | [wgpsec/AboutSecurity](https://github.com/wgpsec/AboutSecurity) | 见上游 | ctf-reverse 知识片段 |
 | [Und3rf10w/ai-ghidra-tools](https://github.com/Und3rf10w/ai-ghidra-tools) | 见上游 | ghidra_scripts 脚本集(legacy 冻结层) |
