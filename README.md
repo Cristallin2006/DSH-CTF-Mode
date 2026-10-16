@@ -6,7 +6,7 @@ All-in-one CTF agent skills for dsh: web / misc / crypto / pwn / forensics(traff
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 
-**前置要求**:dsh · Python 3.10+ ·(可选，仅逆向/pwn)Ghidra 12.x + JDK 21+
+**前置要求**:dsh · Python 3.10+ ·(可选，仅逆向/pwn)Ghidra 12.x + JDK 21+ —— 完整工具选型与环境复现指南见 [TOOLSET.md](TOOLSET.md)
 
 ## 结构
 
