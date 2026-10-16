@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
+import {actions as ACTIONS,parameters,validate,contract} from './session-contract.mjs?revision=1.1.0';
+import {NativeJobs} from './native-jobs.mjs?revision=1.1.1';
 
 const nativeRoot=process.env.DSH_NATIVE_PACKAGE_ROOT || '/opt/node24/lib/node_modules/@deepseek-ai/dsh';
 const nativeRequire=createRequire(path.join(nativeRoot,'package.json'));
@@ -11,7 +13,6 @@ const {createUserMessage}=await import(pathToFileURL(nativeRequire.resolve('@dee
 export const name='analysis-hooks-sandbox';
 export const inject=['shell','sessionProjections','tools'];
 const quote=value=>"'"+String(value).replaceAll("'","'\\''")+"'";
-const ACTIONS=['health','init','list','status','bind','checkpoint','transition','target','artifact','record','lease','resource','events'];
 
 export async function apply(ctx,config){
   const root=fs.realpathSync(config.dshHome || process.env.DSH_HOME || '/root/.dsh');
@@ -21,10 +22,15 @@ export async function apply(ctx,config){
   const pluginRoot=fs.realpathSync(config.pluginRoot);
   const python='/usr/bin/python3';
   const runtime=path.join(root,'runtime/analysis-v1/session.py');
+  const lifecycle=new NativeJobs(state,ctx.get('jobs'));
+  ctx.on('tools/execute',(exec,next)=>lifecycle.around(exec,next));
+  if(lifecycle.jobs)ctx.effect(()=>lifecycle.jobs.onJobsChanged(owner=>{if(owner)lifecycle.adopt(owner);}), 'analysis: native job registration');
+  const timer=setInterval(()=>void lifecycle.tick().catch(()=>{health.jobLifecycleError=true;}),250);
+  ctx.effect(()=>async()=>{clearInterval(timer);await lifecycle.close();},'analysis: drain owned native jobs');
   const expected=`python3 "${pluginRoot}/analysis_hook.py"`;
   const prefix=`DSH_HOME=${quote(root)} DSH_ANALYSIS_STATE=${quote(state)} `;
   const agents=new Map();
-  const health={status:'starting',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
+  const health={status:'starting',version:'1.1.1',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
   const healthDir=path.join(state,'health');
   fs.mkdirSync(healthDir,{recursive:true,mode:0o700});
   const healthFile=path.join(healthDir,`host-${process.pid}.json`);
@@ -109,25 +115,18 @@ export async function apply(ctx,config){
   // Reuse the installed bridge, including pairing, lifecycle and cancellation.
   bridge.apply(proxy,{configPath:config.configPath,pluginRoot});
 
-  const allowed={
-    health:[],list:[],init:['goal','id','data'],status:[],bind:[],checkpoint:['data'],transition:['status','data'],
-    target:['id','data'],artifact:['path'],record:['kind','data'],lease:['action','resource','token','ttl'],
-    resource:['id','data'],events:['limit']
-  };
   const tool={
     name:'analysis_session',
-    description:'管理分析任务、目标代次、证据、检查点和资源状态。health 返回实际数据库与 hook 健康。专用状态能力；不能执行命令、改变沙箱或修改项目。',
-    parameters:{type:'object',properties:{action:{type:'string',enum:ACTIONS},task:{type:'string'},options:{type:'object',additionalProperties:true}},required:['action'],additionalProperties:false},
+    description:'管理分析任务、目标代次、证据、检查点及原生后台任务。init options={goal,data:{}} 自动绑定；checkpoint options={data:{summary,...}}；transition options={status,data:{summary,unresolved:[]}}。schema options={action} 返回该动作参数与例子。job_scope 为未来原生后台 bash 绑定目标代次和期限，不提供 SSH/FTP 请求配额。status 返回真实绑定/覆盖。',
+    parameters,
     output:{schema:{type:'string'},render(_args,value){return [{type:'text',text:value}]}},
     async execute(args,exec){
       const agent=exec?.agent;
       if(!agent?.session?.header?.id)throw new Error('analysis_session requires a calling session');
       const action=args.action;
-      if(!ACTIONS.includes(action))throw new Error('unsupported state action');
-      const opts=args.options || {};
-      if(!opts || typeof opts!=='object' || Array.isArray(opts))throw new Error('options must be an object');
-      for(const key of Object.keys(opts))if(!allowed[action].includes(key))throw new Error('unsupported option: '+key);
-      if(opts.data!==undefined && (!opts.data || typeof opts.data!=='object' || Array.isArray(opts.data)))throw new Error('data must be an object');
+      const opts=validate(args),owner=agent.session.header.id;
+      if(action==='schema')return JSON.stringify({ok:true,result:opts.action?contract(opts.action):{actions:ACTIONS,hint:'Pass options={action} for an action-specific example.'}});
+      if(action==='job_scope')return JSON.stringify({ok:true,result:await lifecycle.command(owner,args.task,opts,agent)});
       const argv=[action];
       if(!['health','init','list'].includes(action)){
         if(typeof args.task!=='string' || !args.task || args.task.startsWith('-'))throw new Error('valid task ID required');
@@ -149,12 +148,22 @@ export async function apply(ctx,config){
         if(action==='artifact')argv[argv.indexOf('--path')+1]=actual;
         else argv[argv.indexOf('--data')+1]=JSON.stringify({...opts.data,path:actual});
       }
-      const result=await runState(argv,{workdir:agent.session.header.cwd,signal:exec.signal});
+      const operation=()=>runState(argv,{workdir:agent.session.header.cwd,signal:exec.signal});
+      const oldTask=lifecycle.binding(owner);
+      const needsDrain=action==='target'||action==='transition'&&opts.status!=='running'||action==='bind'&&oldTask&&oldTask!==args.task;
+      const result=needsDrain?await lifecycle.change(owner,action==='bind'?oldTask:args.task,action==='target'?opts.id:null,operation):await operation();
       let parsed;
       try{parsed=JSON.parse(result.stdout.text)}catch{}
       if(action==='health' && (result.exitCode!==0 || !parsed?.ok))return JSON.stringify({ok:false,result:{status:'degraded',error:parsed?.error || result.stderr.text.slice(-1000),state},hook:health});
       if(!parsed)throw new Error('analysis state command failed: '+result.stderr.text.slice(-1000));
-      if(result.exitCode!==0 || !parsed.ok)throw new Error(parsed.error || result.stderr.text.slice(-1000));
+      if(result.exitCode!==0 || !parsed.ok)throw new Error((parsed.error || result.stderr.text.slice(-1000))+'; contract: '+JSON.stringify(contract(action)));
+      if(['health','init','bind','status','target'].includes(action)){
+        const readiness=lifecycle.readiness(owner);
+        const control=ctx.tools.get('dsh_control',agent);
+        try{readiness.request_control=control?JSON.parse(await control.execute({action:'status'},{...exec,agent})): {available:false,coverage:'no controlled HTTP tool registered'};}
+        catch{readiness.request_control={available:false,status:'unavailable',coverage:'unknown; no protection claim'};}
+        parsed.readiness=readiness;
+      }
       return JSON.stringify(action==='health'?{...parsed,hook:health}:parsed);
     }
   };
