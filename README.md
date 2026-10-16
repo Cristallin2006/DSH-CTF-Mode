@@ -61,4 +61,4 @@ cp -r plugins/* ~/.dsh/plugins/
 
 ## 许可与致谢
 
-本仓库代码以 [MIT](LICENSE) 发布。衍生来源与授权见 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md),感谢所有上游作者。
+本仓库代码以 [MIT](LICENSE) 发布。直接收录/衍生内容、设计参考与知识归纳来源分层列于 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md),感谢所有上游作者。
