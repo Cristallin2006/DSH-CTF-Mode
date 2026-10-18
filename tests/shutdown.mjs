@@ -1,0 +1,17 @@
+import os from 'node:os';
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {DatabaseSync} from 'node:sqlite';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+fs.mkdirSync(new URL('../.test-results/',import.meta.url),{recursive:true});
+const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const {Engine}=await import(pathToFileURL(base+'/plugins/analysis-orchestration/engine.mjs').href);
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'dsh-shutdown-regression-')),db=new DatabaseSync(root+'/state.sqlite3');db.exec('CREATE TABLE tasks(id TEXT,data TEXT);CREATE TABLE sessions(id TEXT,task TEXT);CREATE TABLE targets(task TEXT,id TEXT,generation INTEGER,data TEXT);CREATE TABLE mem_owners(task TEXT,actor TEXT);');db.close();
+const contexts=[],agent={session:{header:{id:'main'}},options:{},ctx:{systemPrompt:{context:v=>{contexts.push(v);return ()=>{};}}},inbox:{remove(){}},steer(){}},engine=new Engine({tools:{get:()=>({})}},root,text=>({id:randomUUID(),content:[{type:'text',text}]}));
+engine.attach(agent);const cancelled=new AbortController();await engine.beforeStep({agent,signal:cancelled.signal},()=>Promise.resolve({kind:'enter'}));
+const old=new AbortController();await engine.beforeStep({agent,signal:old.signal},()=>Promise.resolve({kind:'enter'}));assert.equal(engine.abortListeners.size,1);cancelled.abort('replaced turn must not cancel current turn');assert.equal(engine.abortListeners.size,1);
+let closeCalls=0;const original=engine.store.close.bind(engine.store);engine.store.close=()=>{closeCalls++;original();};await Promise.all([engine.close(),engine.close()]);assert.equal(closeCalls,1);assert.equal(engine.abortListeners.size,0);old.abort('late cancellation');engine.parentCancelled(agent);assert.equal(contexts[0].text(),'');await engine.disposeParent(agent);await engine.tick();await engine.preTool({agent,name:'read'},()=>({passed:true}));await new Promise(r=>setTimeout(r,20));assert(engine.closed);assert.equal(engine.fault,null);
+const checks=['abort listener replacement is bounded to the active parent turn','closing detaches all abort listeners before SQLite close','late abort and stale prompt/disposal callbacks do not access closed SQLite','concurrent close is idempotent and closes the database once'];
+fs.writeFileSync(base+'/.test-results/shutdown.json',JSON.stringify({ok:true,checks},null,2));console.log(JSON.stringify({ok:true,checks}));

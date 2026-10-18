@@ -1,0 +1,14 @@
+import os from 'node:os';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {handoff,report,guidance,activity,redact} from '../plugins/analysis-orchestration/contract.mjs';
+const checks=[];
+const h=handoff({inputs:[{ref:'source.txt'}],claims:[{statement:'A possible explanation',evidence_refs:[],verification:'untested'}],hypotheses:['A may be wrong']});assert.deepEqual(handoff(h),h);
+assert.throws(()=>handoff({claims:[{statement:'definitely tested',verification:'tested'}]}),/evidence/);assert.throws(()=>handoff({claims:[{statement:'accepted',verification:'accepted'}]}),/acceptance/);assert.throws(()=>handoff({goal:'invent authority'}),/Invalid/);checks.push('handoff normalizes idempotently; unsupported acceptance and missing tested evidence rejected');
+assert.equal(report({summary:'blocked',outcome:'blocked'}).outcome,'blocked');assert.throws(()=>report({summary:'waiting',wait_ms:10000}),/waiting/);assert.throws(()=>report({summary:'x',wait_reason:'infinite',wait_ms:700000}),/wait_ms/);checks.push('negative/inconclusive/blocked reports supported; waiting is finite and reasoned');
+const now=Date.now(),w={state:'running',started:now-100000,last_model_activity:now,last_tool_finished:now-90000};assert.equal(activity(w,now,1000).state,'no_recent_tool_feedback');assert.equal(activity({...w,inflight:1},now,1000).state,'tool_in_flight');assert.equal(activity({...w,wait_until:now+1000},now,1000).state,'declared_wait');assert.equal(activity({...w,repeated:4},now,1000).repeated_input,true);checks.push('model activity cannot masquerade as tool feedback; running tools and declared waits are separate review states');
+assert.throws(()=>guidance({observation:'x',hypothesis:'x',experiment:'x'}),/reconsider/);assert.equal(guidance({observation:'x',hypothesis:'possibly x',experiment:'test x',reconsider_if:'opposite result'}).hypothesis,'possibly x');assert(!redact('Authorization: Bearer fake-token-value token=synthetic-secret password=hunter2').includes('synthetic-secret'));assert(!redact('password=hunter2').includes('hunter2'));checks.push('structured advice requires a reconsider condition; common credential-shaped text is masked');
+fs.mkdirSync(new URL('../.test-results/',import.meta.url),{recursive:true});
+const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');fs.mkdirSync(base+'/.test-results',{recursive:true});fs.writeFileSync(base+'/.test-results/contract.json',JSON.stringify({ok:true,checks},null,2));console.log(JSON.stringify({ok:true,checks}));

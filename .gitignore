@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 *.orig-*
 .DS_Store
+.test-results/
+analysis-state/
+control-vault/
+*.sqlite3*

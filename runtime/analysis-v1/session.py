@@ -14,7 +14,7 @@ import time
 import uuid
 from contextlib import contextmanager
 
-VERSION = '1.0.4'
+VERSION = '1.0.7'
 ROOT = Path(os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
 STATE = Path(os.environ.get('DSH_ANALYSIS_STATE', str(ROOT / 'analysis-state')))
 TRANSITIONS = {
@@ -85,6 +85,65 @@ def valid_target(con, task, target, generation):
     if row[0] is None or row[0] != generation:
         raise ValueError('target generation is stale or absent')
 
+
+def orchestration_basis(con, task, run):
+    data = get_task(con, task)
+    targets = [dict(row) for row in con.execute('SELECT id,MAX(generation) AS generation FROM targets WHERE task=? GROUP BY id ORDER BY id', (task,))]
+    works = []
+    for row in con.execute('SELECT data FROM orch_work WHERE task=? AND epoch=?', (task, run['epoch'])):
+        work = json.loads(row[0])
+        review, feedback = work.get('review'), work.get('checkpoint') or {}
+        works.append({'id': work['id'], 'state': work['state'], 'result_revision': work.get('result_revision', 0),
+                      'review': {'decision': review['decision'], 'result_revision': review.get('result_revision', 0)} if review else None,
+                      'feedback': {'outcome': feedback.get('outcome'), 'evidence_refs': sorted(set(feedback.get('evidence_refs', [])))}})
+    return {'epoch': run['epoch'], 'goal': data.get('goal'), 'constraints': data.get('constraints') if data.get('constraints') is not None else {},
+            'targets': targets, 'works': sorted(works, key=lambda work: work['id'])}
+
+
+def require_orchestration_resolution(con, task):
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE name='orch_runs'").fetchone():
+        return
+    row = con.execute('SELECT data FROM orch_runs WHERE task=?', (task,)).fetchone()
+    if not row:
+        return
+    run = json.loads(row[0])
+    if run.get('state') not in ('finished', 'disabled'):
+        raise ValueError('finish or explicitly disable orchestration before completing the task')
+    review = run.get('resolution_review') or {}
+    if review.get('state') != 'resolved' or review.get('basis') != orchestration_basis(con, task, run):
+        raise ValueError('current orchestration goal resolution required; read dsh_orchestration status and resolve against its decision_review.signature; finish/disable alone is not goal completion')
+    resolution = review.get('resolution') or {}
+    if resolution.get('decision') != 'complete' or resolution.get('goal_status') != 'fulfilled' or not resolution.get('completion_scope') or not resolution.get('evidence_refs'):
+        raise ValueError('goal is not recorded fulfilled with delivery scope and evidence; retain checkpoint and pause/block, or supply a grounded complete resolution')
+    unresolved = resolution.get('unresolved')
+    if not isinstance(unresolved, list) or any(not isinstance(item, dict) or item.get('disposition') != 'out_of_scope' or not item.get('reason') for item in unresolved):
+        raise ValueError('in-scope unresolved objectives cannot be silently completed')
+    works = {json.loads(row[0])['id']: json.loads(row[0]) for row in con.execute('SELECT data FROM orch_work WHERE task=? AND epoch=?', (task, run['epoch']))}
+    for work in works.values():
+        if work['state'] in ('launching', 'running', 'stopping', 'cleanup_unknown', 'pending', 'returned'):
+            raise ValueError('unresolved orchestration branches remain; review or explicitly retire them')
+        if work['state'] == 'needs_more_evidence' and not any(item.get('work') == work['id'] for item in unresolved):
+            raise ValueError('needs_more_evidence branch must remain explicit in resolution')
+    refs = list(resolution['evidence_refs']) + [ref for item in unresolved for ref in item.get('evidence_refs', [])]
+    targets = review['basis']['targets']
+    for ref in refs:
+        if not isinstance(ref, str):
+            raise ValueError('invalid resolution evidence reference')
+        if ref.startswith('work:') and '@' in ref:
+            ident, revision = ref[5:].rsplit('@', 1)
+            work = works.get(ident)
+            if not work or not revision.isdigit() or int(revision) != work.get('result_revision', 0) or not work.get('result') or run.get('targets') != targets:
+                raise ValueError('stale resolution work evidence')
+        elif ref.startswith('record:'):
+            evidence = con.execute('SELECT data FROM records WHERE task=? AND id=?', (task, ref[7:])).fetchone()
+            if not evidence:
+                raise ValueError('resolution evidence is absent or belongs to another task')
+            data = json.loads(evidence[0])
+            if data.get('target') and not any(t['id'] == data['target'] and t['generation'] == data.get('generation') for t in targets):
+                raise ValueError('resolution evidence target generation is stale')
+        else:
+            raise ValueError('resolution evidence must be record:ID or work:ID@RESULT_REVISION')
+
 def process_identity(pid):
     try:
         raw = Path('/proc') / str(pid) / 'stat'
@@ -112,7 +171,14 @@ def inspect_status(con, task):
     records = rows('records')
     for item in records:
         item['data'] = json.loads(item['data'])
-    return {'task': data, 'targets': targets, 'resources': resources, 'leases': leases, 'records': records}
+    result = {'task': data, 'targets': targets, 'resources': resources, 'leases': leases, 'records': records}
+    if con.execute("SELECT 1 FROM sqlite_master WHERE name='orch_runs'").fetchone():
+        row = con.execute('SELECT data FROM orch_runs WHERE task=?', (task,)).fetchone()
+        if row:
+            run = json.loads(row[0]); review = run.get('resolution_review') or {}
+            result['orchestration_decision'] = {'state': review.get('state', 'pending'), 'current': review.get('basis') == orchestration_basis(con, task, run),
+                                               'resolution': review.get('resolution'), 'delivery': review.get('delivery'), 'authority': 'coordinator assessment, not verified goal completion'}
+    return result
 
 def reconcile_resources(con, task):
     resources = [dict(x) for x in con.execute('SELECT * FROM resources WHERE task=?', (task,))]
@@ -131,6 +197,20 @@ def reconcile_resources(con, task):
 
 def active_resource_count(con, task, exclude=None):
     return sum(item['id'] != exclude and item['data'].get('status') == 'active' for item in reconcile_resources(con, task))
+
+
+def require_native_jobs_stopped(con, task, target=None):
+    if con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='orch_work'").fetchone():
+        active = con.execute("SELECT id FROM orch_work WHERE task=? AND json_extract(data,'$.state') IN ('launching','running','stopping','cleanup_unknown') LIMIT 1", (task,)).fetchone()
+        if active:
+            raise ValueError('orchestrated Solver cleanup unconfirmed; pause/cancel in its owning host before changing task/target')
+    if not con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='analysis_native_jobs'").fetchone():
+        return
+    rows = con.execute('SELECT data FROM analysis_native_jobs WHERE task=?', (task,))
+    for row in rows:
+        data = json.loads(row[0])
+        if (target is None or data.get('target_id') == target) and data.get('status') in ('launching', 'running', 'stopping', 'cleanup_unknown'):
+            raise ValueError('native job cleanup unconfirmed; use owning host analysis_session lifecycle entry before changing task/target')
 
 def check_lease(con, resource, task, owner, token):
     row = con.execute('SELECT * FROM leases WHERE resource=?', (resource,)).fetchone()
@@ -171,6 +251,9 @@ def execute(args):
         if args.command == 'status':
             return inspect_status(con, task)
         if args.command == 'bind':
+            old = con.execute('SELECT task FROM sessions WHERE id=?', (args.session,)).fetchone()
+            if old and old[0] and old[0] != task:
+                require_native_jobs_stopped(con, old[0])
             con.execute('INSERT INTO sessions(id,task,cwd) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET task=excluded.task',
                         (args.session, task, str(Path.cwd())))
             event(con, 'session-bound', {}, args.session, task)
@@ -179,6 +262,8 @@ def execute(args):
             data = get_task(con, task)
             checkpoint = load_data(args)
             if args.command == 'transition':
+                if args.status != 'running':
+                    require_native_jobs_stopped(con, task)
                 if args.status != data['status'] and args.status not in TRANSITIONS[data['status']]:
                     raise ValueError('invalid task transition')
                 if args.status != 'running' and not checkpoint.get('summary'):
@@ -192,6 +277,8 @@ def execute(args):
                         raise ValueError('unresolved collaboration work remains; review or retire it explicitly')
                 if args.status == 'complete' and checkpoint.get('unresolved'):
                     raise ValueError('unresolved objective remains; save checkpoint and pause/block as appropriate')
+                if args.status == 'complete':
+                    require_orchestration_resolution(con, task)
                 data['status'] = args.status
             data['checkpoint'] = checkpoint
             data['updated_at'] = time.time()
@@ -199,6 +286,7 @@ def execute(args):
             event(con, args.command, checkpoint, task=task)
             return data
         if args.command == 'target':
+            require_native_jobs_stopped(con, task, args.id)
             data = load_data(args)
             current = con.execute('SELECT MAX(generation) FROM targets WHERE task=? AND id=?', (task, args.id)).fetchone()[0] or 0
             generation = current + 1

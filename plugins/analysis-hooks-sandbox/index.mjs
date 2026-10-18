@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {actions as ACTIONS,parameters,validate,contract} from './session-contract.mjs?revision=1.1.0';
+import {actions as ACTIONS,parameters,validate,contract} from './session-contract.mjs?revision=1.1.2';
 import {NativeJobs} from './native-jobs.mjs?revision=1.1.1';
 
 const nativeRoot=process.env.DSH_NATIVE_PACKAGE_ROOT || '/opt/node24/lib/node_modules/@deepseek-ai/dsh';
@@ -30,7 +30,7 @@ export async function apply(ctx,config){
   const expected=`python3 "${pluginRoot}/analysis_hook.py"`;
   const prefix=`DSH_HOME=${quote(root)} DSH_ANALYSIS_STATE=${quote(state)} `;
   const agents=new Map();
-  const health={status:'starting',version:'1.1.1',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
+  const health={status:'starting',version:'1.1.2',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
   const healthDir=path.join(state,'health');
   fs.mkdirSync(healthDir,{recursive:true,mode:0o700});
   const healthFile=path.join(healthDir,`host-${process.pid}.json`);

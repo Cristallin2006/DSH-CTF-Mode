@@ -21,12 +21,15 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 
 | 项目 | 参考点 |
 |---|---|
-| [BreachWeave](https://github.com/m-sec-org/BreachWeave) | 事实与方向的区分、失败边界、分层共享 |
+| [BreachWeave](https://github.com/m-sec-org/BreachWeave/tree/bc2d9502a2625c5ef354adc30243bd091341cc51) | 事实与方向的区分、失败边界、分层共享；编排的 Planner / Solver / Observer 职责分离与保守纠偏 |
 | [Graphiti](https://github.com/getzep/graphiti) | 来源关联、显式关系、事实适用性管理 |
 | [Mem0](https://github.com/mem0ai/mem0) | 作用域隔离、提取与存储分工、历史记录 |
 | [LangMem](https://github.com/langchain-ai/langmem) | 类型契约、命名空间、记忆工具接口 |
 | [Letta Code](https://github.com/letta-ai/letta-code) | 核心记忆分层、延后读取、定向修订 |
-| [ARTEX](https://github.com/jiwoochris/artex-global)(实际参考 artex-global) | 任务依赖、证据关联与领取机制 |
+| [ARTEX artex-global（实际检查版本）](https://github.com/jiwoochris/artex-global/tree/fdfb7a17b7da5e2de716c0e98475ec77a41c64c6) | 任务依赖、证据关联与领取机制；编排的事件唤醒、心跳和工作生命周期 |
+| [Microsoft Magentic](https://learn.microsoft.com/en-us/agent-framework/workflows/orchestrations/magentic) | 独立协调与进度复查的设计参考；未移植其实现或完整算法 |
+
+上述编排参考应用于 `analysis-orchestration`，由本项目结合 DSH 原生接口独立实现，未复制所列项目的代码或提示词。ARTEX 链接指向实际研究的 artex-global 分支版本，不代表原项目当前版本，也不表示移植了完整探索图。未采用特定评测平台的固定完成规则、时限或请求配额。
 
 ## 三、知识归纳来源(未收录其代码/规则全集)
 

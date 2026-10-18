@@ -20,6 +20,7 @@ def startup_context(sid):
             '候选、测试和外部接受分别说明，可带未决问题合法收尾并记录后台资源。'
             '当前 session_id='+sid+'。受限会话优先用原生 analysis_session 工具管理任务状态，'
             'init 自动绑定本会话；health 检查实际落库与钩子健康。'
+            'init options={goal,data:{}}；checkpoint/transition 的内容放 options.data；参数不明用 action=schema。'
             '普通 shell 的 CLI 仍遵守会话沙箱；不要为写状态目录而全局放开权限。'
             '共享写操作用 lease/guard；未登记的旧 daemon 不会自动认领或终止。'
             '完整材料可用 dsh_handoff 分块交接，摘要不代替原文，凭据不写普通记忆。'

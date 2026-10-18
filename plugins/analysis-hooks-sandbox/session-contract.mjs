@@ -24,7 +24,7 @@ export const actions=Object.keys(contracts);
 export function contract(action){
   if(!contracts[action])throw Error('Unknown action. Available actions: '+actions.join(', '));
   return {action,options:contracts[action],required:required[action]??[],example:examples[action]??{action,...(['health','list','init','schema'].includes(action)?{}:{task:'TASK_ID'}),options:{}},
-    note:action==='job_scope'?'set requires target_id,generation,environment,ttl_seconds. Applies to future native background bash jobs of this owner only; budget_ref is a reference, not protocol quota enforcement.':
+    note:action==='transition'?'complete checks the actual task delivery scope. Previously orchestrated tasks need a current dsh_orchestration resolve decision=complete, goal_status=fulfilled, completion_scope and evidence, then finish/disable. Empty unresolved alone cannot bypass this. Pause/block/cancel remain available; a stage report is not automatically total-goal completion.':action==='job_scope'?'set requires target_id,generation,environment,ttl_seconds. Applies to future native background bash jobs of this owner only; budget_ref is a reference, not protocol quota enforcement.':
       'task stays at top level; checkpoint, transition and record content belongs inside options.data. Caller identity is host-provided.'};
 }
 export function validate(args){
