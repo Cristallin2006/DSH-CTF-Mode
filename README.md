@@ -1,8 +1,8 @@
 # DSH-CTF-Skill
 
-面向 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的 CTF 与安全分析 skill 合集：Web、Misc、密码学、Pwn、流量取证与逆向知识库，配合可选的任务状态、结构化记忆和解题编排插件。
+**简体中文** | [English](README.en.md) | [日本語](README.ja.md)
 
-CTF and analysis skills for DSH, with optional durable task state, structured memory and supervised continuable Solvers.
+面向 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的 CTF 与安全分析技能库，覆盖 Web、逆向、密码学、Pwn、流量取证等方向；配套可选的持续型 Solver 编排、结构化记忆、证据复核与可靠任务状态管理。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 
