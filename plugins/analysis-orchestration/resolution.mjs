@@ -1,5 +1,6 @@
+import {premiseBasis} from './premises.mjs?revision=0.7.0';
 import {createHash} from 'node:crypto';
-import {live,text} from './store.mjs?revision=0.4.0';
+import {live,text} from './store.mjs?revision=0.7.0';
 
 const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
 const packed=v=>JSON.stringify(canonical(v));
@@ -15,7 +16,7 @@ function refs(v=[]){if(!Array.isArray(v)||v.length>32)throw Error('Invalid evide
 const optional=(v,n,max=2000)=>v===undefined||v===''?'':text(v,n,max);
 export function basis(store,r){
   const task=JSON.parse(store.q('SELECT data FROM tasks WHERE id=?',r.task).data);
-  return {epoch:r.epoch,goal:task.goal??null,constraints:task.constraints??{},targets:store.targets(r.task),works:store.works(r).map(w=>({
+  return {...(r.decision_premises?.length?{premises:premiseBasis(store,r.task,r.decision_premises)}:{}),epoch:r.epoch,goal:task.goal??null,constraints:task.constraints??{},targets:store.targets(r.task),works:store.works(r).map(w=>({
     id:w.id,state:w.state,result_revision:w.result_revision??0,
     review:w.review?{decision:w.review.decision,result_revision:w.review.result_revision??0}:null,
     feedback:{outcome:w.checkpoint?.outcome??null,evidence_refs:[...new Set(w.checkpoint?.evidence_refs??[])].sort()}
@@ -29,7 +30,11 @@ export class Resolution {
     const revision=(previous?.revision??0)+1;
     return {revision,signature:hash({basis:b,revision}),basis:b,state:'pending',created_at:Date.now(),delivery:{attempts:0,state:'pending'},resolution:null};
   }
-  summary(r){const v=this.view(r);return {state:v.state,signature:v.signature,revision:v.revision,delivery:v.delivery,resolution:v.resolution,authority:'State/version checks only; resolution is a coordinator assessment, not independent proof of completion'};}
+  premiseSummary(r){
+    const b=this.view(r).basis.premises;if(!b)return {revision:r.premise_revision??0,items:[]};
+    return {revision:r.premise_revision??0,items:b.bindings.map(ref=>{const n=b.nodes.find(n=>n.id===ref.record_id);return {...ref,current_revision:n?.revision??null,effective_applicability:n?.effective_applicability??'unavailable',revision_matches:n?.revision===ref.revision};}),authority:'Version/applicability checks; a changed basis is not proof the proposition is false'};
+  }
+  summary(r){const v=this.view(r);return {state:v.state,signature:v.signature,revision:v.revision,decision_premises:this.premiseSummary(r),delivery:v.delivery,resolution:v.resolution,authority:'State/version checks only; resolution is a coordinator assessment, not independent proof of completion'};}
   ensure(r,{force=false,notify=true}={}){
     const e=this.e;if(e.closed||e.closing)return;
     r=e.store.run(r.task);const works=e.store.works(r);

@@ -43,7 +43,7 @@ try{
  const tool=async(name,args,error=false)=>{const v=await ctx.tools.execute({name,callId:randomUUID(),agent:handle.agent,arguments:args,signal:new AbortController().signal});if(error){assert(v.isError);return;}assert(!v.isError,JSON.stringify(v));return JSON.parse(v.content.filter(b=>b.type==='text').map(b=>b.text).join(''));};
  task=(await tool('analysis_session',{action:'init',options:{goal:'Evaluate whether a constant observed output proves all paths equivalent'}})).result.id;
  await tool('dsh_memory_write',{action:'open',task});await tool('dsh_orchestration',{action:'enable',task,options:{heartbeat_ms:1000}});
- work=(await tool('dsh_orchestration',{action:'add',task,options:{key:'coverage',question:'Assess only the provided local output and its coverage limits',success:'Give a scoped conclusion'}})).id;
+ work=(await tool('dsh_orchestration',{action:'add',task,options:{execution_plan:{kind:'materials',requirements:[]},skill_plan:{required:[],none_reason:'Synthetic orchestration fixture has no specialist-method requirement'},key:'coverage',question:'Assess only the provided local output and its coverage limits',success:'Give a scoped conclusion'}})).id;
  await tool('dsh_orchestration',{action:'dispatch',task,options:{work:[work]}});db=new DatabaseSync(state+'/state.sqlite3');
  for(let i=0;i<200;i++){const row=JSON.parse(db.prepare('SELECT data FROM orch_runs WHERE task=?').get(task).data);if(row.resolution_review?.state==='resolved')break;await new Promise(resolve=>setTimeout(resolve,30));}
  let saved=JSON.parse(db.prepare('SELECT data FROM orch_runs WHERE task=?').get(task).data);

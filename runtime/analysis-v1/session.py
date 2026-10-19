@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -14,7 +15,7 @@ import time
 import uuid
 from contextlib import contextmanager
 
-VERSION = '1.0.7'
+VERSION = '1.0.8'
 ROOT = Path(os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
 STATE = Path(os.environ.get('DSH_ANALYSIS_STATE', str(ROOT / 'analysis-state')))
 TRANSITIONS = {
@@ -86,6 +87,77 @@ def valid_target(con, task, target, generation):
         raise ValueError('target generation is stale or absent')
 
 
+def orchestration_premises(con, task, bindings):
+    """Mirror the restricted premise projection in orchestration/premises.mjs."""
+    from datetime import datetime
+    nodes, sources = {}, {}
+    def source(ident):
+        if ident in sources:
+            return
+        out = {'id': ident, 'sha256': None, 'valid': False}
+        try:
+            row = con.execute('SELECT * FROM mem_sources WHERE task=? AND id=?', (task, ident)).fetchone()
+            if row is None and ident.startswith('doc-') and con.execute("SELECT name FROM sqlite_master WHERE name='handoff_documents'").fetchone():
+                row = con.execute('SELECT * FROM handoff_documents WHERE task=? AND id=?', (task, ident)).fetchone()
+            owner = con.execute('SELECT workspace FROM mem_owners WHERE task=?', (task,)).fetchone()
+            if row:
+                out['sha256'] = row['sha256']
+                root, file = Path(owner['workspace']).resolve(strict=True), Path(row['path']).resolve(strict=True)
+                chunks = row['chunks'] if 'chunks' in row.keys() else None
+                generation = 0 if row['target'] is None else con.execute('SELECT MAX(generation) FROM targets WHERE task=? AND id=?', (task, row['target'])).fetchone()[0]
+                out['valid'] = (file.is_relative_to(root) and not file.is_relative_to(STATE.resolve())
+                                and not any(re.fullmatch(r'(\.dsh|\.ssh|\.aws|\.git|\.env(?:\..*)?|credentials?)', p, re.I) for p in file.parts)
+                                and file.is_file() and file.stat().st_size <= (2097152 if chunks else 131072) and generation == row['generation']
+                                and (not chunks or str(file) == row['path'] and hashlib.sha256(''.join(json.loads(chunks)).encode()).hexdigest() == row['sha256'])
+                                and hashlib.sha256(file.read_bytes()).hexdigest() == row['sha256'])
+        except (OSError, TypeError, KeyError):
+            pass
+        sources[ident] = out
+    def visit(ident):
+        if ident in nodes:
+            return
+        node = {'id': ident, 'revision': None, 'review_state': None, 'applicability': 'unavailable', 'generation_valid': False, 'time_valid': False, 'dependencies': [], 'sources': []}
+        nodes[ident] = node
+        if len(nodes) > 256:
+            raise ValueError('Premise closure exceeds supported bound')
+        row = con.execute('SELECT r.data FROM mem_objects o JOIN mem_revisions r ON r.id=o.id AND r.task=o.task AND r.rev=o.head WHERE o.task=? AND o.id=?', (task, ident)).fetchone()
+        if not row:
+            return
+        data = json.loads(row[0])
+        def timestamp(key):
+            return datetime.fromisoformat(data[key].replace('Z', '+00:00')).timestamp() if data.get(key) else None
+        generation = 0 if data['target_id'] is None else con.execute('SELECT MAX(generation) FROM targets WHERE task=? AND id=?', (task, data['target_id'])).fetchone()[0]
+        now = time.time()
+        time_valid = not ((timestamp('recheck_after') is not None and timestamp('recheck_after') <= now)
+                          or (timestamp('valid_from') is not None and timestamp('valid_from') > now)
+                          or (timestamp('valid_to') is not None and timestamp('valid_to') <= now))
+        node.update(revision=data['revision'], review_state=data['review_state'], applicability=data['applicability'],
+                    generation_valid=generation == data['expected_generation'], time_valid=time_valid,
+                    dependencies=data.get('dependency_refs', []), sources=sorted({r['source_id'] for r in data.get('evidence_refs', []) + data.get('details', {}).get('input_refs', []) + data.get('acceptance_source_refs', [])}))
+        for ref in node['dependencies']:
+            visit(ref['record_id'])
+        for ident in node['sources']:
+            source(ident)
+    for binding in bindings:
+        visit(binding['record_id'])
+    def effective(ident, seen=None):
+        seen = set() if seen is None else set(seen)
+        node = nodes.get(ident)
+        if node is None or ident in seen:
+            return 'needs_recheck'
+        if node['applicability'] in ('revoked', 'superseded', 'unavailable'):
+            return node['applicability']
+        seen.add(ident)
+        if (not node['generation_valid'] or not node['time_valid']
+                or any(not sources.get(ident, {}).get('valid') for ident in node['sources'])
+                or any(nodes.get(ref['record_id'], {}).get('revision') != ref['revision'] or effective(ref['record_id'], seen) != 'current' for ref in node['dependencies'])):
+            return 'needs_recheck'
+        return node['applicability']
+    for node in nodes.values():
+        node['effective_applicability'] = effective(node['id'])
+    return {'bindings': bindings, 'nodes': sorted(nodes.values(), key=lambda n: n['id']), 'sources': sorted(sources.values(), key=lambda s: s['id'])}
+
+
 def orchestration_basis(con, task, run):
     data = get_task(con, task)
     targets = [dict(row) for row in con.execute('SELECT id,MAX(generation) AS generation FROM targets WHERE task=? GROUP BY id ORDER BY id', (task,))]
@@ -96,7 +168,8 @@ def orchestration_basis(con, task, run):
         works.append({'id': work['id'], 'state': work['state'], 'result_revision': work.get('result_revision', 0),
                       'review': {'decision': review['decision'], 'result_revision': review.get('result_revision', 0)} if review else None,
                       'feedback': {'outcome': feedback.get('outcome'), 'evidence_refs': sorted(set(feedback.get('evidence_refs', [])))}})
-    return {'epoch': run['epoch'], 'goal': data.get('goal'), 'constraints': data.get('constraints') if data.get('constraints') is not None else {},
+    return {**({'premises': orchestration_premises(con, task, run['decision_premises'])} if run.get('decision_premises') else {}),
+            'epoch': run['epoch'], 'goal': data.get('goal'), 'constraints': data.get('constraints') if data.get('constraints') is not None else {},
             'targets': targets, 'works': sorted(works, key=lambda work: work['id'])}
 
 

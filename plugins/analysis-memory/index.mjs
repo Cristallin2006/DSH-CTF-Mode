@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {MemoryReadBroker} from './broker.mjs';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
@@ -20,11 +21,16 @@ export function apply(ctx,config={}){
     ctx.systemPrompt.section({name:'analysis-memory:usage',order:875,text:'[Analysis memory unavailable] Memory could not open. No memory writes or collaboration were enabled. Continue using original evidence and analysis_session; never claim memory persistence succeeded.'});
     return;
   }
+  let broker=null,removeBroker=()=>{};
+  try{
+    broker=new MemoryReadBroker(store);
+    removeBroker=ctx.provide('analysisMemoryBroker',Object.freeze({normalize:broker.normalize.bind(broker),grant:broker.grant.bind(broker),boundary:broker.boundary.bind(broker),status:broker.status.bind(broker),read:broker.read.bind(broker),coverage:broker.coverage.bind(broker)}));
+  }catch{if(broker)void broker.close();broker=null;}
   const host=randomUUID(),active=new Map(),publications=new Map(),reads=new Map(),contextDisposers=new Map();
   const max=config.maxParallel??2,timeout=config.timeoutMs??90000;
   if(!Number.isInteger(max)||max<1||max>4||!Number.isInteger(timeout)||timeout<1000||timeout>180000)throw Error('Invalid collaboration limits');
   const healthPath=path.join(state,'health','memory-host-'+process.pid+'.json');fs.mkdirSync(path.dirname(healthPath),{recursive:true,mode:0o700});
-  const health={...store.health(),pid:process.pid,host,startedAt:new Date().toISOString(),calls:0,failures:0,maxParallel:max,timeoutMs:timeout,active:0};
+  const health={...store.health(),solverBrokerVersion:broker?1:null,solverBrokerError:broker?null:'unavailable',pid:process.pid,host,startedAt:new Date().toISOString(),calls:0,failures:0,maxParallel:max,timeoutMs:timeout,active:0};
   function save(){try{const tmp=healthPath+'.'+host+'.tmp';fs.writeFileSync(tmp,JSON.stringify(health,null,2),{mode:0o600});fs.renameSync(tmp,healthPath);delete health.healthWriteError;}catch{health.healthWriteError=true;}}
   save();
   const root=exec=>{
@@ -157,5 +163,5 @@ export function apply(ctx,config={}){
   for(const t of [readTool,writeTool,collabTool,evidenceTool,handoffTool])ctx.effect(()=>ctx.tools.register(t),'analysis-memory: '+t.name);
   // Existing main tools are untouched. Child restrictions are passed through
   // the native spawn provider, never by replacing global tool schemas.
-  ctx.effect(()=>async()=>{for(const a of active.values())a.controller.abort('Memory plugin disposing');await Promise.allSettled([...active.values()].map(a=>a.completion));for(const d of contextDisposers.values())d();contextDisposers.clear();store.close();health.disposedAt=new Date().toISOString();save();},'analysis-memory: drain');
+  ctx.effect(()=>async()=>{const brokerDrain=broker?.close();await removeBroker();await brokerDrain;for(const a of active.values())a.controller.abort('Memory plugin disposing');await Promise.allSettled([...active.values()].map(a=>a.completion));for(const d of contextDisposers.values())d();contextDisposers.clear();store.close();health.disposedAt=new Date().toISOString();save();},'analysis-memory: drain');
 }

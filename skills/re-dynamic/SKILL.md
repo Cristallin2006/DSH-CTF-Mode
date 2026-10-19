@@ -17,6 +17,8 @@ description: 观察程序基线、验证假设，使用 GDB、Frida、Qiling、�
 
 ## 选择实验
 
+数据恢复模型与实际输出不一致时，核对位宽、读数、ABI 和初始状态，再按差异选断点、trace 或局部模型；不强制某个调试器。静态数据与未知变换的入口见 ghidra-static 的 references/data-driven-recovery.md。
+
 GDB 用于断点、内存与控制流；Frida 用于真实进程插桩；Qiling 用于可控函数/系统调用实验；符号执行适合可控路径约束，评估模型覆盖和规模后使用。可重复调试模板用 gdbkit.py，也可写必要的手工脚本。
 
 `scripts/layer_dump.py` 可保存解密层；需要 Ghidra xref 时 import-raw 保留基址和 OEP。`scripts/oracle_family.py` 打桩隔离因子；在有限输入、路径和常量干预下输出不变，只支持“未观察到影响”。改变返回值可能改变控制流，应对照基线。time/random hook 改变运行环境，文件未改不自动构成独立验证。

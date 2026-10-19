@@ -15,7 +15,7 @@ const messages=[],ctx={agents:{get:id=>id==='child'?child:parent},tools:{get:()=
 const e=new Engine(ctx,root,text=>({id:randomUUID(),content:[{type:'text',text}]}));
 const parent={session:{header:{id:'main'}},options:{},ctx:{systemPrompt:{context:()=>()=>{}}},inbox:{remove(){}},steer:m=>messages.push(m)};
 const child={session:{header:{id:'child',parentSession:'main',origin:'subagent'}},steer:m=>messages.push(m)};
-const call=(action,options={})=>e.command({action,task:'task',options},{agent:parent,signal:new AbortController().signal});
+const call=(action,options={})=>e.command({action,task:'task',options:action==='add'?{execution_plan:{kind:'materials',requirements:[]},skill_plan:{required:[],none_reason:'Synthetic orchestration fixture has no specialist-method requirement'},...options}:options},{agent:parent,signal:new AbortController().signal});
 const checks=[];
 try{
   await call('enable');let w=await call('add',{key:'unit',question:'Synthetic feedback boundaries',success:'Report only its own state',timeout_ms:5000}),r=e.store.run('task');

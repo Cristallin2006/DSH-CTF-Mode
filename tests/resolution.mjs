@@ -17,26 +17,26 @@ const task=cli('init','--goal','Deliver a limited evidence review','--session','
 const db=new DatabaseSync(state+'/state.sqlite3');db.exec('CREATE TABLE mem_owners(task TEXT,actor TEXT)');db.prepare('INSERT INTO mem_owners VALUES(?,?)').run(task,'main');db.close();
 const messages=[],parent={session:{header:{id:'main'}},options:{},ctx:{systemPrompt:{context:()=>()=>{}}},inbox:{remove(){}},steer:m=>messages.push(m)};
 const make=()=>new Engine({tools:{get:()=>({})}},state,text=>({id:randomUUID(),content:[{type:'text',text}]}));
-let e=make();const exec={agent:parent,signal:new AbortController().signal},call=(action,options={})=>e.command({action,task,options},exec),checks=[];
+let e=make();const exec={agent:parent,signal:new AbortController().signal},call=(action,options={})=>e.command({action,task,options:action==='add'?{execution_plan:{kind:'materials',requirements:[]},skill_plan:{required:[],none_reason:'Synthetic orchestration fixture has no specialist-method requirement'},...options}:options},exec),checks=[];
 const guard=()=>spawnSync('python3',['-c',"import importlib.util; s=importlib.util.spec_from_file_location('analysis_session',__import__('sys').argv[1]); m=importlib.util.module_from_spec(s); s.loader.exec_module(m);\nwith m.database() as c: m.require_orchestration_resolution(c,__import__('sys').argv[2])",runtime,task],{env,encoding:'utf8'});
 const setTask=fn=>{const t=JSON.parse(e.store.q('SELECT data FROM tasks WHERE id=?',task).data);fn(t);e.store.sql('UPDATE tasks SET data=? WHERE id=?',JSON.stringify(t),task);};
-const decide=async resolution=>call('resolve',{expected_signature:(await call('status')).decision_review.signature,resolution});
+const decide=async resolution=>call('resolve',{expected_signature:(await call('status',{view:'detail'})).decision_review.signature,resolution});
 try{
- await call('enable');const enabled=await call('status');assert.equal(enabled.expires,null);assert.equal(enabled.max_wakeups,null);await e.tick();assert.equal(messages.length,0);
+ await call('enable');const enabled=await call('status',{view:'detail'});assert.equal(enabled.expires,null);assert.equal(enabled.max_wakeups,null);await e.tick();assert.equal(messages.length,0);
  const added=await call('add',{key:'review',question:'Review supplied evidence; do not assume solvability',success:'Return a scoped report'});
  await e.tick();assert.equal(messages.length,0,'Adding work must not interrupt the normal add/dispatch sequence');
  let w=e.store.work(task,added.id);w.state='returned';w.result='Observed 31 fixed characters under the tested input; other paths remain unverified.';w.result_revision=1;w.checkpoint={outcome:'inconclusive',evidence_refs:['local-output.txt:1'],revision:1,summary:'Unverified remaining paths'};e.store.saveWork(w);
  await call('review',{work:w.id,decision:'needs_more_evidence',reason:'Broader negative conclusion unsupported'});
- await e.tick();let status=await call('status'),sig=status.decision_review.signature;assert.equal(status.decision_review.state,'pending');assert.equal(messages.length,1);
+ await e.tick();let status=await call('status',{view:'detail'}),sig=status.decision_review.signature;assert.equal(status.decision_review.state,'pending');assert.equal(messages.length,1);
  const count=()=>e.store.q("SELECT COUNT(*) AS n FROM orch_events WHERE task=? AND kind='decision_required'",task).n;
- const events=count();for(let i=0;i<20;i++)await e.tick();assert.equal(count(),events);assert.equal((await call('status')).decision_review.signature,sig);
- e.claimed({agent:parent,message:messages.at(-1)});assert.equal((await call('status')).decision_review.delivery.state,'received');
+ const events=count();for(let i=0;i<20;i++)await e.tick();assert.equal(count(),events);assert.equal((await call('status',{view:'detail'})).decision_review.signature,sig);
+ e.claimed({agent:parent,message:messages.at(-1)});assert.equal((await call('status',{view:'detail'})).decision_review.delivery.state,'received');
  let r=e.store.run(task);r.resolution_review.delivery.next_attempt_at=0;e.store.save(r);await e.tick();assert.equal(messages.length,2);e.claimed({agent:parent,message:messages.at(-1)});
  for(let i=0;i<20;i++){r=e.store.run(task);r.resolution_review.delivery.next_attempt_at=0;e.store.save(r);await e.tick();}assert.equal(messages.length,2);
  checks.push('idle review is durable and versioned; read/heartbeat repetition does not re-open it; message receipt is not resolution; notification attempts are bounded');
  const deferred={decision:'deferred',goal_status:'uncertain',summary:'Current coverage is insufficient to assert the whole program has no other path',unresolved:[{work:w.id,issue:'Remaining control-flow coverage',disposition:'deferred',reason:'No evidence that further execution is currently worth its cost',next_step:'Revisit when an additional input or coverage method becomes available'}]};
  const deferredReply=await decide(deferred);assert.equal(deferredReply.state,'resolved');await e.tick();assert.equal(messages.length,2);
- await call('finish',{reason:'Stage report delivered; wider technical question remains unresolved'});assert.equal((await call('status')).state,'finished');
+ await call('finish',{reason:'Stage report delivered; wider technical question remains unresolved'});assert.equal((await call('status',{view:'detail'})).state,'finished');
  assert.notEqual(guard().status,0);const bypass=cli('transition',task,'--status','complete','--data',JSON.stringify({summary:'blank-list bypass',unresolved:[]}));assert.notEqual(bypass.status,0);assert.match(bypass.text,/not recorded fulfilled/);
  assert.equal(cli('transition',task,'--status','paused','--data','{"summary":"Explicit stage pause"}').status,0);assert.equal(cli('transition',task,'--status','running','--data','{}').status,0);
  checks.push('deferred work sleeps; stage finish and an empty unresolved checkpoint cannot bypass shared CLI completion checks; pause remains available');
@@ -47,12 +47,12 @@ try{
  const foreign=cli('init','--goal','Unrelated task','--session','foreign');const foreignRecord=cli('record',foreign.result.id,'--kind','note','--data','{"text":"Other task evidence"}');
  await assert.rejects(decide({...complete,evidence_refs:['record:'+foreignRecord.result.id]}),/existing same-task/);
  await assert.rejects(decide({...complete,evidence_refs:[`work:${w.id}@0`]}),/Stale or absent/);
- const old=(await call('status')).decision_review.signature;await call('resolve',{expected_signature:old,resolution:complete});assert.equal(guard().status,0);
+ const old=(await call('status',{view:'detail'})).decision_review.signature;await call('resolve',{expected_signature:old,resolution:complete});assert.equal(guard().status,0);
  assert((await call('resolve',{expected_signature:old,resolution:complete})).deduplicated);
  await assert.rejects(call('resolve',{expected_signature:old,resolution:{...complete,summary:'A conflicting later decision using the old signature'}}),/Stale decision/);
  checks.push('scoped reports can complete with explicitly explained out-of-scope work; missing, stale or cross-task evidence cannot satisfy resolution; optimistic updates and identical retries are safe');
  w=e.store.work(task,w.id);w.checkpoint.summary='Formatting-only rewrite';w.checkpoint.revision++;e.store.saveWork(w);assert.equal(guard().status,0);
- w.result_revision=2;w.review={...w.review,result_revision:2};e.store.saveWork(w);assert.notEqual(guard().status,0);assert.equal((await call('status')).decision_review.state,'pending');
+ w.result_revision=2;w.review={...w.review,result_revision:2};e.store.saveWork(w);assert.notEqual(guard().status,0);assert.equal((await call('status',{view:'detail'})).decision_review.state,'pending');
  await assert.rejects(decide(complete),/Stale or absent/);complete.evidence_refs=[`work:${w.id}@2`];await decide(complete);assert.equal(guard().status,0);
  setTask(t=>t.constraints={authorization:'new scope'});assert.notEqual(guard().status,0);await decide(complete);assert.equal(guard().status,0);
  setTask(t=>t.goal='Deliver the updated limited evidence review');assert.notEqual(guard().status,0);await decide(complete);assert.equal(guard().status,0);
@@ -63,20 +63,20 @@ try{
  checks.push('result, task-constraint and target-generation changes invalidate decisions across JS and Python; a formatting-only feedback rewrite does not; stale target evidence cannot be reused');
  // A paused/finished task is never resumed by decision recording or due review.
  r=e.store.run(task);r.targets=e.store.targets(task);r.state='enabled';e.store.save(r);
- const due={...deferred,recheck_at:new Date(Date.now()+120).toISOString()};await decide(due);await new Promise(resolve=>setTimeout(resolve,160));await e.tick();const dueSig=(await call('status')).decision_review.signature;assert.equal((await call('status')).decision_review.state,'pending');
- const dueEvents=count();await e.tick();assert.equal((await call('status')).decision_review.signature,dueSig);assert.equal(count(),dueEvents);
- await call('disable',{reason:'User requested stage stop'});assert.equal((await call('status')).state,'disabled');const stoppedMessages=messages.length;await e.tick();assert.equal(messages.length,stoppedMessages);
+ const due={...deferred,recheck_at:new Date(Date.now()+120).toISOString()};await decide(due);await new Promise(resolve=>setTimeout(resolve,160));await e.tick();const dueSig=(await call('status',{view:'detail'})).decision_review.signature;assert.equal((await call('status',{view:'detail'})).decision_review.state,'pending');
+ const dueEvents=count();await e.tick();assert.equal((await call('status',{view:'detail'})).decision_review.signature,dueSig);assert.equal(count(),dueEvents);
+ await call('disable',{reason:'User requested stage stop'});assert.equal((await call('status',{view:'detail'})).state,'disabled');const stoppedMessages=messages.length;await e.tick();assert.equal(messages.length,stoppedMessages);
  checks.push('optional recheck opens one new review without starting work; explicit disable is available and prevents automatic wake-up or resume');
  // Notification failure must retain the pending event across an actual engine reload.
- r=e.store.run(task);r.state='enabled';e.store.save(r);parent.steer=()=>{throw Error('Local notification transport failure')};r.resolution_review=null;e.store.save(r);e.clearNotice(r);await e.tick();assert.equal(e.fault,null);assert.equal((await call('status')).decision_review.delivery.state,'failed');
- const persisted=(await call('status')).decision_review.signature;await e.close();e=make();assert.equal((await call('status')).decision_review.signature,persisted);assert.equal((await call('status')).state,'paused');await e.tick();assert.equal((await call('status')).state,'paused');
- r=e.store.run(task);r.pid=99999999;r.identity='absent test host';e.store.save(r);await call('recover');await decide(deferred);assert.equal((await call('status')).state,'paused');
+ r=e.store.run(task);r.state='enabled';e.store.save(r);parent.steer=()=>{throw Error('Local notification transport failure')};r.resolution_review=null;e.store.save(r);e.clearNotice(r);await e.tick();assert.equal(e.fault,null);assert.equal((await call('status',{view:'detail'})).decision_review.delivery.state,'failed');
+ const persisted=(await call('status',{view:'detail'})).decision_review.signature;await e.close();e=make();assert.equal((await call('status',{view:'detail'})).decision_review.signature,persisted);assert.equal((await call('status',{view:'detail'})).state,'paused');await e.tick();assert.equal((await call('status',{view:'detail'})).state,'paused');
+ r=e.store.run(task);r.pid=99999999;r.identity='absent test host';e.store.save(r);await call('recover');await decide(deferred);assert.equal((await call('status',{view:'detail'})).state,'paused');
  checks.push('failed notification persists across engine close/reopen; host recovery and decision handling keep execution paused');
  parent.steer=m=>messages.push(m);r=e.store.run(task);r.state='enabled';e.store.save(r);
  const continueValue={decision:'continue',goal_status:'unfulfilled',summary:'One justified next experiment is planned but has not been launched',unresolved:[{work:w.id,issue:'Next local discriminator',disposition:'continue',reason:'New local evidence justifies a next step',next_step:'Explicit followup is still needed'}]};
- const continueSignature=(await call('status')).decision_review.signature;const continuing=await call('resolve',{expected_signature:continueSignature,resolution:continueValue});assert((await call('resolve',{expected_signature:continueSignature,resolution:continueValue})).deduplicated);
- assert.equal(continuing.state,'pending_action');await e.tick();const pendingAction=await call('status');assert.equal(pendingAction.decision_review.state,'pending_action');assert.equal(pendingAction.decision_review.delivery.state,'queued');assert.equal(e.active.size,0);
- await decide(deferred);await e.tick();assert.equal((await call('status')).decision_review.state,'resolved');
+ const continueSignature=(await call('status',{view:'detail'})).decision_review.signature;const continuing=await call('resolve',{expected_signature:continueSignature,resolution:continueValue});assert((await call('resolve',{expected_signature:continueSignature,resolution:continueValue})).deduplicated);
+ assert.equal(continuing.state,'pending_action');await e.tick();const pendingAction=await call('status',{view:'detail'});assert.equal(pendingAction.decision_review.state,'pending_action');assert.equal(pendingAction.decision_review.delivery.state,'queued');assert.equal(e.active.size,0);
+ await decide(deferred);await e.tick();assert.equal((await call('status',{view:'detail'})).decision_review.state,'resolved');
  checks.push('continue records pending action and bounded follow-through reminders; it neither silently sleeps as completed execution nor launches unauthorized work');
  // Ordinary un-orchestrated tasks retain their previous completion path.
  const plain=cli('init','--goal','A simple completed answer','--session','plain');assert.equal(cli('transition',plain.result.id,'--status','complete','--data','{"summary":"Done","unresolved":[]}').status,0);

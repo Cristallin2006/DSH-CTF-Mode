@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
-import {live,text} from './store.mjs?revision=0.4.0';
-import {trace,taskContext} from './contract.mjs?revision=0.4.0';
+import {live,text} from './store.mjs?revision=0.7.0';
+import {trace,taskContext} from './contract.mjs?revision=0.7.0';
 
 const short=e=>String(e?.message??e).slice(0,500);
 export class Continuable {
@@ -27,7 +27,7 @@ export class Continuable {
       clearTimeout(item.timer);let state=item.controller.signal.aborted?'cancelled':'failed';
       try{await e.ctx.subagents.drainContinuableChildren(parent,[item.child]);}catch{state='cleanup_unknown';}
       const q=e.store.work(r.task,w.id);q.state=state;q.diagnostic=short(error);q.finished=Date.now();e.store.saveWork(q);e.store.event(r,q.id,'settled',{state});
-      if(state!=='cleanup_unknown'){e.children.delete(item.child);e.active.delete(item.id);}e.notify(r,'Solver creation '+state+': '+w.key);
+      if(state!=='cleanup_unknown'){e.materials.forget(item.child);e.children.delete(item.child);e.active.delete(item.id);}e.notify(r,'Solver creation '+state+': '+w.key);
     }
   }
   end(info){
@@ -36,25 +36,27 @@ export class Continuable {
     clearTimeout(item.timer);
     if(item.run.localAgent)try{e.traceCache.delete(w.id);e.traceCache.set(w.id,trace(item.run.localAgent.session));while(e.traceCache.size>16)e.traceCache.delete(e.traceCache.keys().next().value);}catch{}
     const raw=(info.lastAssistantMessage??[]).filter(x=>x.type==='text').map(x=>x.text).join('\n');
-    w.result=raw.length>32768?raw.slice(0,32768):raw;w.result_truncated=raw.length>32768;w.result_revision=(w.result_revision??0)+1;w.state=item.controller.signal.aborted?'cancelled':info.stopReason==='completed'?'returned':'failed';w.diagnostic=item.controller.signal.aborted?String(item.controller.signal.reason).slice(0,500):info.stopReason==='completed'?null:'Native turn stopped: '+info.stopReason;w.finished=Date.now();w.native_stop=info.stopReason;w.guidance_waiting_until=null;
+    w.result=raw.length>32768?raw.slice(0,32768):raw;w.result_truncated=raw.length>32768;w.result_revision=(w.result_revision??0)+1;w.state=item.controller.signal.aborted?'cancelled':info.stopReason==='completed'?'returned':'failed';w.diagnostic=item.controller.signal.aborted?String(item.controller.signal.reason).slice(0,500):w.skill_delivery?.state==='blocked'?'Required skill delivery blocked: '+w.skill_delivery.error:info.stopReason==='completed'?null:'Native turn stopped: '+info.stopReason;w.finished=Date.now();w.native_stop=info.stopReason;w.guidance_waiting_until=null;
     w.turn_history??=[];w.turn_history.push({revision:w.result_revision,at:w.finished,state:w.state,stop_reason:info.stopReason,summary:raw.slice(0,1000),native_session:item.child});w.turn_history=w.turn_history.slice(-16);
     e.store.saveWork(w);e.store.event(r,w.id,'settled',{state:w.state,result_revision:w.result_revision,child:item.child,resumable:true});e.notify(r,'Solver '+w.key+' '+w.state+'; child remains continuable');
   }
   async wake(r,id,parent){
     const e=this.e;let w=e.store.work(r.task,id),item=e.active.get(id);
     if(e.quarantines.has(w.child))throw Error('An unauthorized native activation is draining; inspect status before retrying');
+    e.checkExecution(r,id,parent);
     if(w.mode!=='continuable'||!w.child)throw Error('Legacy one-shot work cannot be resumed; add new work');
     if(live.has(w.state)){if(!item||item.closing)throw Error('Native lifecycle is not ready');return item;}
     if(e.store.works(r).some(d=>d.id!==id&&d.depends_on.includes(id)&&!['retired','cancelled'].includes(d.state)))throw Error('Retire dependent work before revising its adopted input; or create new work');
     if(!['returned','adopted','rejected','needs_more_evidence','failed','interrupted','cancelled'].includes(w.state))throw Error('Work cannot accept follow-up');
     w=e.store.claim(r,id,e.host,e.maxGlobal,true);w.review=null;w.result=null;w.diagnostic=null;w.finished=null;w.turn_serial=(w.turn_serial??1)+1;w.checkpoint_hash=null;w.turn_started=Date.now();e.store.saveWork(w);
-    item??=this.item(r,w,parent);if(item.controller.signal.aborted){e.children.delete(item.child);e.active.delete(id);item=this.item(r,w,parent);}
+    item??=this.item(r,w,parent);if(item.controller.signal.aborted){e.materials.forget(item.child);e.children.delete(item.child);e.active.delete(id);item=this.item(r,w,parent);}
     this.arm(r,w,item);return item;
   }
-  async deliver(r,id,content){
-    const e=this.e,parent=e.parents.get(r.owner);if(!parent)throw Error('Owning parent is unavailable');const item=await this.wake(r,id,parent);
+  async deliver(r,id,content,plan){
+    const e=this.e,parent=e.parents.get(r.owner);if(!parent)throw Error('Owning parent is unavailable');const restoreAssignment=e.store.work(r.task,id).skill_delivery?.state==='blocked';if(plan!==undefined){const current=e.store.work(r.task,id);if(current.role==='observer'||live.has(current.state))throw Error('Change skill_plan only on an idle Solver followup');}const item=await this.wake(r,id,parent);if(plan!==undefined){const changed=e.store.work(r.task,id);changed.skill_plan=plan;changed.skill_delivery={state:'pending',authority:'selected for followup; not yet delivered'};e.store.saveWork(changed);}
     try{
-      const messageId=await e.ctx.subagents.sendMessage(parent,item.child,[{type:'text',text:content},{type:'text',text:'[DSH current recorded context] '+JSON.stringify(taskContext(e.store,r))}],{signal:item.controller.signal});
+      const assignment=restoreAssignment?[{type:'text',text:JSON.stringify({task:r.task,work:id,...e.assignment(r,e.store.work(r.task,id)),restored_after_material_block:true})}]:[];
+      const messageId=await e.ctx.subagents.sendMessage(parent,item.child,[...assignment,{type:'text',text:content},{type:'text',text:'[DSH current recorded context] '+JSON.stringify({...taskContext(e.store,r),skill_plan:e.store.work(r.task,id).skill_plan??null,skill_plan_note:'This is the current coordinator selection; earlier assignment selections may have been replaced. It grants no additional tools.'})}],{signal:item.controller.signal});
       item.run.localAgent=e.ctx.agents.get(item.child)??item.run.localAgent;
       const q=e.store.work(r.task,id);if(q.state==='launching')q.state='running';e.store.saveWork(q);return messageId;
     }catch(error){
@@ -71,7 +73,7 @@ export class Continuable {
     item.closing=(async()=>{
       try{
         await item.completion;await e.ctx.subagents.drainContinuableChildren(item.parentAgent,[item.child]);
-        w=e.store.work(r.task,id);w.state=preserve&&!wasLive?previous:'cancelled';w.diagnostic=preserve&&!wasLive?w.diagnostic:reason;w.guidance_waiting_until=null;w.finished??=Date.now();e.store.saveWork(w);e.store.event(r,id,'child_released',{state:w.state,reason});e.children.delete(item.child);e.active.delete(id);
+        w=e.store.work(r.task,id);w.state=preserve&&!wasLive?previous:'cancelled';w.diagnostic=preserve&&!wasLive?w.diagnostic:reason;w.guidance_waiting_until=null;w.finished??=Date.now();e.store.saveWork(w);e.store.event(r,id,'child_released',{state:w.state,reason});e.materials.forget(item.child);e.children.delete(item.child);e.active.delete(id);
       }catch(error){w=e.store.work(r.task,id);w.state='cleanup_unknown';w.diagnostic=short(error);e.store.saveWork(w);throw error;}
     })();
     let timer;try{await Promise.race([item.closing,new Promise((_r,reject)=>{timer=setTimeout(()=>reject(Error('Native child cleanup unconfirmed')),e.drainMs);})]);}

@@ -5,7 +5,7 @@
 | `analysis-hooks-sandbox` 1.1.2 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |
 | `analysis-memory` | 结构化记忆、`dsh_handoff` 材料交接，以及独立的只读有限协作 |
 | `analysis-control` | 按宿主导入策略控制 HTTP(S) 预算、速率、origin 与 vault 引用 |
-| `analysis-orchestration` 0.4.0 | 实验性专职编排、持续型 Solver、监督与版本化完成判断 |
+| `analysis-orchestration` 0.7.0 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
 
 要求 Linux 原生文件系统上的独立状态目录（不要放到 WSL `/mnt/` 盘）。验收宿主为 DSH 0.1.5-rc.3、Node.js 24.21.0，需原生 SQLite 和持续型子代理接口。
 
@@ -49,7 +49,7 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state
     - id: analysis-orchestration
-      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.4.0
+      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.7.0
       config:
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state

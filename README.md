@@ -8,13 +8,18 @@ CTF and analysis skills for DSH, with optional durable task state, structured me
 
 模型自主分析并选择路线；运行层维护任务身份、证据引用、资源和生命周期；skill 提供专业方法。简单任务可直接使用专业 skill，复杂且有独立分支的任务可按需启用专职编排。
 
-## 本次更新（2026-10-18）
+## 本次更新（2026-10-19）
 
-- **实验性解题编排 0.4.0**：主代理负责战略、派发和复核，具体执行交给持续型 Solver；事件通知与心跳支持进度监督、有据纠偏和确认取消。
+- **实验性解题编排 0.7.0**：主代理负责战略、派发和复核，具体执行交给持续型 Solver；事件通知与心跳支持进度监督、有据纠偏和确认取消。
+- **重要前提失效检查**：明确登记的记忆前提及其来源变化后，旧完成判断不能继续通行；无关记忆更新不反复重开决策。
+- **受限记忆与第二角度复核**：Solver 仅召回明确授予的已复核记录及原件；支持中性交接与同一子会话的中性续做，原件读取回执与理解、验证分开。
 - **同一子会话续做**：Solver 返回后可空闲，`followup` 恢复同一身份及自身历史。默认不设置任务时限、工作时限、步骤上限或累计唤醒上限；模型上下文、单次工具限制及资源租约仍生效。
 - **空闲后的明确决策**：记录继续、等待、阻塞、暂缓或完成；`finish` 只结束编排阶段，总任务完成另需当前范围与证据。目标、约束、结果或关键证据变化会使旧判断失效。
 - **更准确的交接与负面证据**：区分用户约束、阶段安排、假设与建议；登录诊断、失败复用和覆盖度判断说明实际排除范围。
 - **生命周期修复**：卸载前移除旧取消监听并收尾，避免延迟取消回调访问已关闭数据库。
+- **数据驱动恢复**：补充布局、比较方向、复合变换与证据验证知识；新增本地有限搜索器，显式声明参数范围、预算、等价去重与可重放候选。见[数据恢复](skills/ghidra-static/references/data-driven-recovery.md)与[管道契约](skills/ghidra-static/references/transform-pipelines.md)。
+
+必要技能及其 skill-materials.json 声明的完整参考卡由宿主在子代理推理前装载并记录可见性；brief 摘要不替代原文，其他技能继续按需读取。新 Solver 需声明 skill_plan 与 execution_plan；显式 objective_ref 防止同目标换 key 重开，默认查询采用摘要和增量分页。缺执行能力或缺硬额度受控路径时不启动；资源清理没有通用拦截保证。详见[可靠工作](skills/analysis-orchestration/references/reliable-work.md)。字段与旧工作迁移见[技能材料交付](skills/analysis-orchestration/references/skill-delivery.md)。
 
 本次发布不宣称跑分提升或多代理必然优于单代理。编排适用于交接成本可控、能独立执行或复核的工作。
 
@@ -28,7 +33,7 @@ CTF and analysis skills for DSH, with optional durable task state, structured me
 | `skills/re-*`、`vuln-audit`、`android-re`、`pwn-exploit` | 逆向、动态验证、代码分析、Android 与 Pwn；与 [ghidra-skill-for-dsh](https://github.com/Cristallin2006/ghidra-skill-for-dsh) 同源 |
 | `skills/analysis-session`、`analysis-memory` | 任务、目标代次、证据、资源租约、结构化记忆及材料交接 |
 | `skills/analysis-orchestration` | 专职编排、持续型 Solver、监督与完成判定的方法和契约 |
-| `runtime/analysis-v1` | Python/SQLite 状态运行库；当前 session 版本 1.0.7 |
+| `runtime/analysis-v1` | Python/SQLite 状态运行库；当前 session 版本 1.0.8 |
 | `plugins/` | DSH 宿主插件：状态适配、记忆、可选请求控制、实验性编排 |
 | `dsh-hooks/` | 会话卡与状态钩子入口、配置片段和合并脚本 |
 | `tests/` | 隔离的合成回归，不调用外部模型或靶场 |
@@ -72,12 +77,14 @@ cp -R runtime/analysis-v1 "$DSH_HOME/runtime/"
 
 ```bash
 python3 tests/run.py
+# 数据恢复工具的独立合成回归（仅 Python，无需模型服务）
+python3 tests/recovery.py
 # 可选：原生宿主验收，需要已安装的 DSH；从同一终端运行
 export DSH_NATIVE_PACKAGE_ROOT="$(npm root -g)/@deepseek-ai/dsh"
 python3 tests/run.py --native
 ```
 
-基础回归覆盖交接契约、反馈、默认预算、版本化处置、跨任务证据隔离与数据库关闭；原生回归另验证插件卸载重载、空闲 Solver 唤醒父代理、同一子会话续做、技能与权限边界。使用本地合成模型适配器和独立临时状态，不读取真实解题 session，不调用已配置模型服务。报告写入被忽略的 `.test-results/`，临时材料留在系统临时目录供排错。
+基础回归覆盖交接契约、反馈、默认预算、版本化处置、跨任务证据隔离与数据库关闭；原生回归另验证插件卸载重载、空闲 Solver 唤醒父代理、同一子会话续做、技能与权限边界。0.7.0 本地验收通过 15 组合成/原生回归、2 组安装后验收及隔离 Web 启停；数据恢复工具另有 13 项 Python 回归。使用本地合成模型适配器和独立临时状态，不读取真实解题 session，不调用已配置模型服务。这些结果验证实现机制，不代表真实模型的解题效果。报告写入被忽略的 `.test-results/`，临时材料留在系统临时目录供排错。
 
 ## 历史测试记录
 
@@ -88,3 +95,7 @@ python3 tests/run.py --native
 ## 许可与致谢
 
 本仓库原创代码以 [MIT](LICENSE) 发布；收录或衍生内容保留上游适用的许可。直接来源、架构参考与知识归纳分层列于 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)。编排借鉴 BreachWeave、实际检查的 ARTEX artex-global 版本及 Microsoft Magentic 的部分机制，并使用 DSH 原生接口独立实现。
+
+### 协作推理与受限记忆（0.7.0）
+
+增加显式重要前提的版本失效检查、按原生 Solver 身份授予的只读记忆/原件召回，以及可选择中性交接的第二角度契约。未预留能力的旧工作不扩权，Observer 零工具；空闲授权变化不触发模型。新召回工具只支持已复核记录与 src-* 证据快照，doc-* 原件继续使用既有交接通道；离线合成验收不代表真实解题提分。详见 [权限、边界与使用说明](skills/analysis-orchestration/references/collaborative-memory.md)。

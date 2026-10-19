@@ -4,7 +4,7 @@
 
 ## 2. 函数级 Oracle（oracle.py）
 
-给定二进制 + 函数地址（Ghidra listing 里的地址）+ 参数，真实调用该函数并返回 JSON（retval/stdout/regs/stop_reason）。CTF check 函数验证的标准动作：喂候选输入，看返回 0/1。
+给定二进制、函数地址（Ghidra listing 中的地址）与参数，在 Qiling 后端执行函数并返回 JSON（retval/stdout/regs/stop_reason）。这是仿真实验，不等同于原平台执行；用于候选或中间态对照时，返回值语义、初始化与后端覆盖均需确认。
 
 ```bash
 python "$ORACLE" <binary> 0x101064 1 0x20              # 整参（SysV 前 6 / Win64 前 4）

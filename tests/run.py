@@ -13,11 +13,11 @@ for key in ('DSH_HOME', 'DSH_ANALYSIS_STATE'):
 node = shutil.which('node')
 if not node:
     sys.exit('Node.js 24 is required')
-names = ['contract', 'feedback', 'invariants', 'resolution', 'shutdown']
+names = ['contract', 'feedback', 'invariants', 'resolution', 'shutdown', 'skill-delivery-unit', 'reliability', 'reference-policy-unit', 'collaborative-memory']
 if '--native' in sys.argv:
     if not env.get('DSH_NATIVE_PACKAGE_ROOT'):
         sys.exit('Set DSH_NATIVE_PACKAGE_ROOT to the installed @deepseek-ai/dsh package')
-    names += ['reload', 'idle-native', 'native']
+    names += ['reload', 'idle-native', 'native', 'skill-delivery', 'reference-delivery', 'collaborative-native']
 for name in names:
     print(f'Running {name}', flush=True)
     result = subprocess.run([node, str(root/'tests'/f'{name}.mjs')], cwd=root, env=env)

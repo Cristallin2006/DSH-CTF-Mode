@@ -6,7 +6,7 @@
 
 | 上游 | 许可 | 用于 |
 |---|---|---|
-| [ljagiello/ctf-skills](https://github.com/ljagiello/ctf-skills) | MIT | ctf-web / ctf-misc / ctf-crypto 的知识框架与部分配方(经改造) |
+| [ljagiello/ctf-skills](https://github.com/ljagiello/ctf-skills) | MIT | ctf-web / ctf-misc / ctf-crypto 的知识框架与部分配方，以及逆向资料中的比较方向/诱饵提示等（经条件校准与改造） |
 | [Cellebrite Labs ghidra-rpc](https://github.com/cellebrite-labs/ghidra-rpc) | MIT | `skills/ghidra-core/engine/ghidra-rpc` 执行引擎(vendored + dsh 补丁) |
 | [clearbluejar/pyghidra-mcp](https://github.com/clearbluejar/pyghidra-mcp) | Apache-2.0 | ghidra-rpc 内 GUI 启动器模式(`GuiPyGhidraMcpLauncher` 适配,随上游 vendored 带入) |
 | [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) | MIT | 逆向方法论框架 |
@@ -28,6 +28,8 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 | [Letta Code](https://github.com/letta-ai/letta-code) | 核心记忆分层、延后读取、定向修订 |
 | [ARTEX artex-global（实际检查版本）](https://github.com/jiwoochris/artex-global/tree/fdfb7a17b7da5e2de716c0e98475ec77a41c64c6) | 任务依赖、证据关联与领取机制；编排的事件唤醒、心跳和工作生命周期 |
 | [Microsoft Magentic](https://learn.microsoft.com/en-us/agent-framework/workflows/orchestrations/magentic) | 独立协调与进度复查的设计参考；未移植其实现或完整算法 |
+| [CyberChef Magic](https://github.com/gchq/CyberChef/wiki/Automatic-detection-of-encoded-data-using-CyberChef-Magic) | 数据驱动恢复的结构识别、试探变换与多指标排名方法；不宣称移植其完整自动检测引擎 |
+| [Binary Refinery](https://github.com/binref/refinery) | 可组合字节变换与可重放管道的接口设计参考；transform_search.py 独立实现 |
 
 上述编排参考应用于 `analysis-orchestration`，由本项目结合 DSH 原生接口独立实现，未复制所列项目的代码或提示词。ARTEX 链接指向实际研究的 artex-global 分支版本，不代表原项目当前版本，也不表示移植了完整探索图。未采用特定评测平台的固定完成规则、时限或请求配额。
 
@@ -46,9 +48,16 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 | [crypto-attacks](https://github.com/jvdsn/crypto-attacks) | `ctf-crypto/references/crypto-attack-contracts.md`(攻击接口与成立条件归纳) |
 | [Wycheproof](https://github.com/C2SP/wycheproof) | 同上(测试目标区分;未打包向量库) |
 | [Ghidra](https://github.com/NationalSecurityAgency/ghidra) | `ghidra-static/references/pcode-width-contracts.md`(P-code 官方规范归纳) |
+| [Mandiant FLOSS](https://github.com/mandiant/flare-floss) | `ghidra-static/references/data-driven-recovery.md` 中静态、栈上、tight 与 decoded strings 的提取视角；未打包其引擎或承诺已安装后端 |
 
 ## 四、运行依赖
 
 `re-dynamic/scripts/local_bv_check.py` 依赖 [Z3](https://github.com/Z3Prover/z3)(z3-solver 的 Python API),按各自环境的安装版本为准;该辅助器只验证声明的数学模型,不证明原程序接受候选。
 
 各上游许可证全文见其各自仓库。MIT 许可文本同本仓库 [LICENSE](LICENSE);Apache-2.0 文本见 <https://www.apache.org/licenses/LICENSE-2.0>。
+
+## 五、协作推理设计参考
+
+### SapperLens / sapper-v2 公开复盘
+
+协作推理与受限记忆设计参考 [SapperLens](https://github.com/inwpu/SapperLens) 及用户提供的 [sapper-v2 复盘文章](https://mp.weixin.qq.com/s/SmEpDPNMWKXqEw0JseTDOg) 中不同角度复核、共享记忆与错误前提传播的分析。实现基于 DSH 现有记忆与原生子会话独立编写，未复制该项目代码、提示词或题目答案；本说明不推定公开可读材料具有可再发布授权。
