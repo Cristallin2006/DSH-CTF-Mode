@@ -10,6 +10,60 @@ CTF and analysis skills for DSH, with optional durable task state, structured me
 
 **TSecBench v1 本地模式实测（2026-10-18）：综合得分 96.94，获得点数 22300，答对 Flag 71/74。** 详见[本地模式跑分记录](#本地模式跑分记录)。
 
+## 架构总览
+
+下图展示启用编排后的职责与数据流。简单任务可由主代理直接使用专业 skill，无需启动 Solver。
+
+```mermaid
+flowchart TB
+    U["用户<br/>目标、输入与授权范围"]
+    K["专业 skill 与 references<br/>Web · 逆向 · 密码学 · Pwn · 取证等"]
+
+    subgraph DSH["DSH 原生宿主 · 编排按任务启用"]
+        C["主 Agent：战略与复核<br/>分析证据、选择路线、派单与处置"]
+        O["运行层：编排与监督<br/>原生派发与续做 · 事件与心跳<br/>身份、范围、版本与生命周期检查"]
+        S["持续型 Solver · 1 至 N 个<br/>独立子会话，负责分析与执行"]
+        T["显式授权的执行工具<br/>Shell · Ghidra · 其他工具"]
+        B["运行层：受限记忆 Broker<br/>当前子身份 · 授权白名单 · 来源范围"]
+    end
+
+    D[("同一 SQLite 状态库<br/>任务与目标代次 · work 与回执<br/>结构化记忆与来源修订")]
+
+    U --> C
+    C -->|派单、指导、复核与处置| O
+    O -->|派发与同一子会话续做| S
+    S -->|进度、证据与阻塞| O
+    O -->|增量状态与监督通知| C
+    K -.->|按需参考专业方法| C
+    K -->|必需正文与参考卡由宿主全文装载| S
+    S -->|执行经授权的实验| T
+    T -->|原始工具反馈| S
+    C -->|复核发布与记忆修订| D
+    O -->|保存工作、处置与交付元数据| D
+    D -->|核对当前状态与前提版本| O
+    O -->|明确授予或撤销读取范围| B
+    S -->|显式启用后的只读召回| B
+    B -->|仅读取获准记录与原件| D
+
+    classDef agent fill:#e0f2fe,stroke:#0284c7,color:#0f172a;
+    classDef runtime fill:#fef3c7,stroke:#d97706,color:#0f172a;
+    classDef knowledge fill:#dcfce7,stroke:#16a34a,color:#0f172a;
+    classDef state fill:#ede9fe,stroke:#7c3aed,color:#0f172a;
+    classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a;
+    class C,S agent;
+    class O,B runtime;
+    class K knowledge;
+    class D state;
+    class U,T external;
+```
+
+- **模型负责判断**：主代理制定策略并复核结果，Solver 自主分析与执行；运行层不把一致意见或工具成功自动升级为正确结论。
+- **skill 提供方法**：必需技能与参考卡在 Solver 推理前全文交付；其他技能仍可发现、按需读取。技能知识不授予额外执行权限。
+- **记忆按范围共享**：主代理复核发布，Solver 仅在首次派单显式预留能力后获得受限只读召回；普通记忆写工具不下放。可选 Observer 保持零工具。
+- **状态形成闭环**：工作、授权、交付与读取回执使用同一状态库；重要前提变化使旧处置失效。任务完成另需当前依据检查，重启仅恢复元数据，不自动重放执行。
+
+实现与安装见[宿主插件](plugins/README.md)，派单与技能交付见[编排 skill](skills/analysis-orchestration/SKILL.md)，记忆授权与第二角度复核见[协作推理契约](skills/analysis-orchestration/references/collaborative-memory.md)。
+
 ## 本次更新（2026-10-19）
 
 - **实验性解题编排 0.7.0**：主代理负责战略、派发和复核，具体执行交给持续型 Solver；事件通知与心跳支持进度监督、有据纠偏和确认取消。
