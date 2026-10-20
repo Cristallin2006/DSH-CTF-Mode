@@ -2,6 +2,8 @@
 
 [简体中文](README.md) | **English** | [日本語](README.ja.md)
 
+> **Turn your DeepSeek into a full-stack CTF team.**
+
 CTF and security analysis skills for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness), covering Web, reverse engineering, cryptography, Pwn, and traffic forensics, with optional orchestration of continuable Solvers, structured memory, evidence review, and durable task state.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)

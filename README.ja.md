@@ -2,6 +2,8 @@
 
 [简体中文](README.md) | [English](README.en.md) | **日本語**
 
+> **あなたの DeepSeek を、フルスタック CTF チームに。**
+
 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 向けの CTF・セキュリティ分析スキル集です。Web、リバースエンジニアリング、暗号、Pwn、通信解析などを扱い、継続型 Solver の編成、構造化メモリ、証拠のレビュー、永続的なタスク状態管理をオプションで利用できます。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
