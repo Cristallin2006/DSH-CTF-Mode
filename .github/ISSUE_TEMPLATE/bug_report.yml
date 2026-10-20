@@ -1,0 +1,31 @@
+name: Bug or installation issue
+description: Report a reproducible installation, knowledge or runtime problem
+body:
+  - type: markdown
+    attributes:
+      value: "中文 / English / 日本語 welcome. Do not upload keys, cookies, private profiles, live session logs or databases. Use synthetic or redacted examples."
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS/WSL, Python, Node, DSH version, install mode and repository version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps and minimal example
+      description: Include the failing step and a small public/synthetic reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Redacted error / diagnostic
+      description: A short relevant excerpt; review doctor output before sharing

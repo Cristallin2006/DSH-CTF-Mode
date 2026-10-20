@@ -1,5 +1,7 @@
 # DSH 宿主插件（WSL / Linux）
 
+初次使用建议从[快速开始](../docs/QUICKSTART.md)进入：安装器默认只读预览，可生成独立启动补丁，无需直接编辑现有 profile。以下保留手动集成方式，适合已有插件配置的环境。
+
 | 插件 | 作用 |
 |---|---|
 | `analysis-hooks-sandbox` 1.1.2 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |

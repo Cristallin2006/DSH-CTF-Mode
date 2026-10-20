@@ -2,11 +2,17 @@
 
 **简体中文** | [English](README.en.md) | [日本語](README.ja.md)
 
+![DSH-CTF-Skill：专业技能、持续型 Solver 与受限记忆](assets/social-preview.png)
+
 > **让你的大肥鱼，变成一支全栈 CTF 团队。**
 
 面向 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的 CTF 与安全分析技能库，覆盖 Web、逆向、密码学、Pwn、流量取证等方向；配套可选的持续型 Solver 编排、结构化记忆、证据复核与可靠任务状态管理。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
+
+[快速开始](docs/QUICKSTART.md) · [可运行示例](examples/README.md) · [下载 Preview](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) · [更新记录](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
+
+**先用一条命令体验：** `python3 examples/recovery/run.py`（仅需 Python 3.10+；Windows 可用 `python`）。这是零模型调用的合成字节恢复示例，另有原生子代理与记忆授权演示。安装可选“仅技能”或“完整编排”，默认只预览，详见[入门指南](docs/QUICKSTART.md)。
 
 模型自主分析并选择路线；运行层维护任务身份、证据引用、资源和生命周期；skill 提供专业方法。简单任务可直接使用专业 skill，复杂且有独立分支的任务可按需启用专职编排。
 
@@ -103,10 +109,9 @@ flowchart TB
 先备份已有同名目录；升级插件时先暂停任务并确认子代理收尾，再维护重启 DSH。不要用旧状态库覆盖新任务。
 
 ```bash
-export DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-mkdir -p "$DSH_HOME/skills" "$DSH_HOME/runtime"
-cp -R skills/. "$DSH_HOME/skills/"
-cp -R runtime/analysis-v1 "$DSH_HOME/runtime/"
+python3 tools/doctor.py --mode skills
+python3 tools/setup.py --mode skills          # preview
+python3 tools/setup.py --mode skills --apply  # install
 ```
 
 仅复制 skill 不会自动获得运行层工具。使用状态、记忆或编排时，还需注册插件并配置钩子与独立状态目录，见[插件安装说明](plugins/README.md)。本仓库不分发个人 profile、模型密钥、任务库或本机私有 `TOOLCHAIN.md`；公开工具选择与探测方式见 [TOOLSET.md](TOOLSET.md)。

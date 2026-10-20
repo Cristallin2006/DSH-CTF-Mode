@@ -2,11 +2,17 @@
 
 [简体中文](README.md) | [English](README.en.md) | **日本語**
 
+![DSH-CTF-Skill：専門スキル、継続型 Solver、範囲を制限したメモリ](assets/social-preview.png)
+
 > **あなたの DeepSeek を、フルスタック CTF チームに。**
 
 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 向けの CTF・セキュリティ分析スキル集です。Web、リバースエンジニアリング、暗号、Pwn、通信解析などを扱い、継続型 Solver の編成、構造化メモリ、証拠のレビュー、永続的なタスク状態管理をオプションで利用できます。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
+
+[クイックスタート](docs/QUICKSTART.md) · [実行例](examples/README.md) · [Preview をダウンロード](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) · [変更履歴](CHANGELOG.md) · [貢献ガイド](CONTRIBUTING.md)
+
+**まず 1 コマンドで体験：** `python3 examples/recovery/run.py`（Python 3.10+ のみ。Windows は `python`）。外部モデルを呼ばない合成データの復元例です。原生 Solver とメモリ権限の実行例もあります。スキルのみ・完全な編成機能の 2 モードを選べ、インストーラーは既定でプレビューのみを行います。[入門ガイド](docs/QUICKSTART.md)をご覧ください。
 
 分析方針はモデルが選び、ランタイムはタスクの識別情報、証拠参照、リソース、ライフサイクルを管理します。スキルは専門的な手法を提供します。単純なタスクではスキルを直接利用し、独立した作業に分割できる複雑なタスクでは専任の編成機能を有効にできます。
 
@@ -105,10 +111,9 @@ flowchart TB
 同名ディレクトリを置き換える前にバックアップしてください。プラグインの更新時はタスクを一時停止し、子エージェントの終了を確認してからメンテナンス再起動を行います。古いデータベースで新しいタスク状態を上書きしないでください。
 
 ```bash
-export DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-mkdir -p "$DSH_HOME/skills" "$DSH_HOME/runtime"
-cp -R skills/. "$DSH_HOME/skills/"
-cp -R runtime/analysis-v1 "$DSH_HOME/runtime/"
+python3 tools/doctor.py --mode skills
+python3 tools/setup.py --mode skills          # preview
+python3 tools/setup.py --mode skills --apply  # install
 ```
 
 スキルをコピーしただけではランタイムのツールは利用できません。状態、メモリ、編成機能には、プラグイン登録、フック、専用の状態ディレクトリも必要です。[プラグイン導入手順](plugins/README.md)を参照してください。個人用 profile、モデルのキー、タスクデータベース、マシン固有の非公開 `TOOLCHAIN.md` は配布しません。公開のツール選択・検出方法は [TOOLSET.md](TOOLSET.md)に記載しています。

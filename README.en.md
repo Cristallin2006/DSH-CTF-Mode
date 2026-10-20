@@ -2,11 +2,17 @@
 
 [简体中文](README.md) | **English** | [日本語](README.ja.md)
 
+![DSH-CTF-Skill: specialist skills, continuable Solvers and scoped memory](assets/social-preview.png)
+
 > **Turn your DeepSeek into a full-stack CTF team.**
 
 CTF and security analysis skills for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness), covering Web, reverse engineering, cryptography, Pwn, and traffic forensics, with optional orchestration of continuable Solvers, structured memory, evidence review, and durable task state.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
+
+[Quick start](docs/QUICKSTART.md) · [Runnable examples](examples/README.md) · [Download Preview](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) · [Changelog](CHANGELOG.md) · [Contribute](CONTRIBUTING.md)
+
+**Try one command first:** `python3 examples/recovery/run.py` (Python 3.10+ only; use `python` on Windows). This synthetic byte-recovery example makes zero model calls. A native Solver/memory walkthrough is also included. Choose skills-only or full orchestration installation; the installer previews by default. See the [quick start](docs/QUICKSTART.md).
 
 The model chooses how to investigate. The runtime maintains task identity, evidence references, resources, and lifecycle state. Skills provide specialist methods. Simple tasks can use skills directly; complex tasks with independent branches can opt into dedicated orchestration.
 
@@ -105,10 +111,9 @@ Specialist skills require their corresponding tools. Plugins were validated loca
 Back up existing directories before replacing them. When upgrading plugins, pause tasks, confirm child cleanup, and perform a maintenance restart. Do not overwrite newer task state with an old database.
 
 ```bash
-export DSH_HOME="${DSH_HOME:-$HOME/.dsh}"
-mkdir -p "$DSH_HOME/skills" "$DSH_HOME/runtime"
-cp -R skills/. "$DSH_HOME/skills/"
-cp -R runtime/analysis-v1 "$DSH_HOME/runtime/"
+python3 tools/doctor.py --mode skills
+python3 tools/setup.py --mode skills          # preview
+python3 tools/setup.py --mode skills --apply  # install
 ```
 
 Copying skills alone does not install runtime tools. State, memory, and orchestration also require plugin registration, hooks, and a dedicated state directory; see [plugin installation](plugins/README.md). This repository does not distribute personal profiles, model keys, task databases, or a machine-private `TOOLCHAIN.md`. Public tool selection and discovery guidance is in [TOOLSET.md](TOOLSET.md).
