@@ -4,8 +4,6 @@
 
 ![黑客版大肥鱼：DSH-CTF-Skill 全栈 CTF 团队](assets/social-preview.png)
 
-<sub>角色参考：[鲸鱼娘开源资产库](https://treapgogo.github.io/deepseek-whale-girl/)的 Q 版大肥鱼；本图为 AI 生成黑客版二创，非官方形象。[原图信息与生成说明](assets/ARTWORK.md)</sub>
-
 > **让你的大肥鱼，变成一支全栈 CTF 团队。**
 
 面向 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 的 CTF 与安全分析技能库，覆盖 Web、逆向、密码学、Pwn、流量取证等方向；配套可选的持续型 Solver 编排、结构化记忆、证据复核与可靠任务状态管理。

@@ -4,8 +4,6 @@
 
 ![ハッカー版クジラ娘：DSH-CTF-Skill のフルスタック CTF チーム](assets/social-preview.png)
 
-<sub>キャラクター参考：[クジラ娘コミュニティ素材集](https://treapgogo.github.io/deepseek-whale-girl/)の Q 版大肥魚。AI 生成のハッカー版二次創作で、非公式の形象です。[原画像情報と生成記録](assets/ARTWORK.md)</sub>
-
 > **あなたの DeepSeek を、フルスタック CTF チームに。**
 
 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) 向けの CTF・セキュリティ分析スキル集です。Web、リバースエンジニアリング、暗号、Pwn、通信解析などを扱い、継続型 Solver の編成、構造化メモリ、証拠のレビュー、永続的なタスク状態管理をオプションで利用できます。

@@ -4,8 +4,6 @@
 
 ![Hacker Whale Girl: DSH-CTF-Skill full-stack CTF team](assets/social-preview.png)
 
-<sub>Character reference: Q-style Whale Girl from the [community asset library](https://treapgogo.github.io/deepseek-whale-girl/). AI-generated hacker reinterpretation; unofficial. [Source image details and generation notes](assets/ARTWORK.md)</sub>
-
 > **Turn your DeepSeek into a full-stack CTF team.**
 
 CTF and security analysis skills for [DeepSeek Harness (DSH)](https://github.com/deepseek-ai/deepseek-harness), covering Web, reverse engineering, cryptography, Pwn, and traffic forensics, with optional orchestration of continuable Solvers, structured memory, evidence review, and durable task state.
