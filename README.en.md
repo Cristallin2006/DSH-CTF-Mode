@@ -20,6 +20,10 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Knowledge update (2026-10-21)
+
+Static RE, Crypto, Web and Pwn now declare small core reference cards delivered in full for selected Solver skills. Topic material stays on demand and other skills remain callable. Initial legacy references now distinguish technical requirements from heuristics. Format checks support explicit Base64 contracts and preserve binary/newline input. See [knowledge checks and CLI compatibility](tests/knowledge/README.md). This is not a new benchmark result.
+
 ## Architecture
 
 The diagram shows responsibilities and data flow when orchestration is enabled. Simple tasks can use skills in the main agent without starting a Solver.

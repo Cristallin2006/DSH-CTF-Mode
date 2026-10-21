@@ -1,0 +1,194 @@
+{
+  "byte-wrap": {
+    "correct": {
+      "status": "checked",
+      "output_hex": "01"
+    },
+    "wrong": {
+      "status": "checked",
+      "output_hex": "0101"
+    }
+  },
+  "byte-nul-newline": {
+    "correct": {
+      "status": "checked",
+      "output_hex": "000a"
+    },
+    "wrong": {
+      "status": "checked",
+      "output_hex": "00"
+    }
+  },
+  "layout-inverse": {
+    "correct": {
+      "status": "checked",
+      "output_hex": "010203"
+    },
+    "wrong": {
+      "status": "checked",
+      "output_hex": "00010203ff"
+    }
+  },
+  "layout-wrong-goal": {
+    "correct": {
+      "status": "no_match",
+      "output_hex": "010203"
+    },
+    "wrong": {
+      "status": "checked",
+      "output_hex": "010203"
+    }
+  },
+  "encoding-unpadded": {
+    "correct": {
+      "status": "checked",
+      "decoded_hex": "48656c6c6f"
+    },
+    "wrong": {
+      "status": "invalid"
+    }
+  },
+  "encoding-required": {
+    "correct": {
+      "status": "invalid",
+      "ok": false
+    },
+    "wrong": {
+      "status": "checked"
+    }
+  },
+  "http-local-error": {
+    "correct": {
+      "observed": 500,
+      "cause": "unknown",
+      "scope": "one_request",
+      "target_accepted": null
+    },
+    "wrong": {
+      "observed": 500,
+      "cause": "server_broken",
+      "scope": "all_routes",
+      "target_accepted": false
+    }
+  },
+  "http-login-reject": {
+    "correct": {
+      "observed": 401,
+      "cause": "unknown",
+      "scope": "one_request",
+      "target_accepted": null
+    },
+    "wrong": {
+      "observed": 401,
+      "cause": "server_broken",
+      "scope": "all_routes",
+      "target_accepted": false
+    }
+  },
+  "oracle-matched": {
+    "correct": {
+      "status": "comparable",
+      "target_accepted": null
+    },
+    "wrong": {
+      "status": "accepted",
+      "target_accepted": true
+    }
+  },
+  "oracle-other-abi": {
+    "correct": {
+      "status": "inconclusive",
+      "target_accepted": null
+    },
+    "wrong": {
+      "status": "accepted",
+      "target_accepted": true
+    }
+  },
+  "capture-retransmit": {
+    "correct": {
+      "complete": true,
+      "output_hex": "41424344"
+    },
+    "wrong": {
+      "complete": true,
+      "output_hex": "434441424142"
+    }
+  },
+  "capture-gap": {
+    "correct": {
+      "complete": false,
+      "output_hex": null
+    },
+    "wrong": {
+      "complete": true,
+      "output_hex": "414244"
+    }
+  },
+  "routing-unresolved": {
+    "correct": {
+      "skills": [
+        "ghidra-static"
+      ],
+      "tool_permissions_unchanged": true
+    },
+    "wrong": {
+      "skills": [
+        "ctf-crypto"
+      ],
+      "tool_permissions_unchanged": true
+    }
+  },
+  "routing-math": {
+    "correct": {
+      "skills": [
+        "ctf-crypto"
+      ],
+      "tool_permissions_unchanged": true
+    },
+    "wrong": {
+      "skills": [
+        "ctf-web"
+      ],
+      "tool_permissions_unchanged": true
+    }
+  },
+  "revision-stale": {
+    "correct": {
+      "same_child": true,
+      "review_current": false
+    },
+    "wrong": {
+      "same_child": true,
+      "review_current": true
+    }
+  },
+  "revision-current": {
+    "correct": {
+      "same_child": true,
+      "review_current": true
+    },
+    "wrong": {
+      "same_child": false,
+      "review_current": true
+    }
+  },
+  "capability-explicit": {
+    "correct": {
+      "status": "checked",
+      "coverage": "not_requested"
+    },
+    "wrong": {
+      "status": "blocked"
+    }
+  },
+  "quota-unmediated": {
+    "correct": {
+      "status": "blocked",
+      "coverage": "unsupported"
+    },
+    "wrong": {
+      "status": "checked"
+    }
+  }
+}

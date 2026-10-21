@@ -6,6 +6,8 @@
 
 ## Ghidra 引擎栈(ghidra-core / ghidra-static)
 
+公开环境说明与探针的范围不同：`tools/doctor.py` 检查 DSH 分发前提；`ghidra-core/scripts/doctor.py` 检查专业后端，但部分条目仍假定个人 venv、发行版或工具目录。探针未命中这些预设只说明该位置未发现，不证明当前系统没有等价工具。先通过当前任务的 discover、PATH 和实际解释器验证所需能力，再决定是否补环境；本轮未重构旧路径注册表，也不自动安装依赖。
+
 | 工具 | 角色 | 选型原因 |
 |---|---|---|
 | Ghidra 12.x | NSA 逆向框架 | 分析引擎本体 |

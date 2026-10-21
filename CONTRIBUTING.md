@@ -17,6 +17,9 @@ Run in Linux/WSL with Python 3.10+ and Node.js 24+:
 ```bash
 python3 tests/setup.py
 python3 tests/recovery.py
+python3 tests/knowledge-contracts.py
+python3 tests/knowledge.py
+node tests/knowledge-package.mjs
 python3 tests/run.py
 ```
 
@@ -26,6 +29,7 @@ Optional native-host checks need installed DSH (validated on 0.1.5-rc.3):
 export DSH_NATIVE_PACKAGE_ROOT="$(npm root -g)/@deepseek-ai/dsh"
 python3 tests/run.py --native
 node tests/setup-native.mjs
+node tests/knowledge-package.mjs --native
 ```
 
 Tests use synthetic inputs and local deterministic adapters. They must not call external model services or live targets. Fixture reports and state belong in temporary/ignored directories. Test installation changes in a fresh home; do not overwrite an active installation.

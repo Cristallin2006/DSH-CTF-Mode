@@ -1,0 +1,397 @@
+[
+  {
+    "id": "byte-wrap",
+    "family": "byte-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "hex": "ff",
+      "ops": [
+        {
+          "op": "add",
+          "value": 2
+        }
+      ],
+      "direction": "forward",
+      "sha256": "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "transform",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "byte-nul-newline",
+    "family": "byte-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "hex": "000a",
+      "ops": [
+        {
+          "op": "xor",
+          "key_hex": "00"
+        }
+      ],
+      "direction": "forward",
+      "sha256": "67ebbd370daa02ba9aadd05d8e091e862d0d8bcadafdf2a22360240a42fe922e"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "transform",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "layout-inverse",
+    "family": "layout-direction",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "hex": "006e6b6cff",
+      "slice": [
+        1,
+        4
+      ],
+      "ops": [
+        {
+          "op": "xor",
+          "key_hex": "5a"
+        },
+        {
+          "op": "add",
+          "value": 19
+        }
+      ],
+      "direction": "inverse",
+      "sha256": "039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "transform",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "layout-wrong-goal",
+    "family": "layout-direction",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "hex": "006e6b6cff",
+      "slice": [
+        1,
+        4
+      ],
+      "ops": [
+        {
+          "op": "xor",
+          "key_hex": "5a"
+        },
+        {
+          "op": "add",
+          "value": 19
+        }
+      ],
+      "direction": "inverse",
+      "sha256": "709e80c88487a2411e1ee4dfb9f22a861492d20c4765150c0c794abd70f8147c"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "transform",
+    "expected_outcome": "no_match",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "encoding-unpadded",
+    "family": "encoding-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "text": "SGVsbG8",
+      "alphabet": "url",
+      "padding": "omitted"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "encoding",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "encoding-required",
+    "family": "encoding-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "text": "SGVsbG8",
+      "alphabet": "standard",
+      "padding": "required"
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "encoding",
+    "expected_outcome": "invalid",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "http-local-error",
+    "family": "http-evidence",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "status": 500,
+      "path": "/synthetic",
+      "samples": 1
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "http-scope",
+    "expected_outcome": "inconclusive",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "http-login-reject",
+    "family": "http-evidence",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "status": 401,
+      "path": "/synthetic",
+      "samples": 1
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "http-scope",
+    "expected_outcome": "inconclusive",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "oracle-matched",
+    "family": "oracle-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "expected_abi": "sysv-x64",
+      "actual_abi": "sysv-x64",
+      "same_input": true
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "oracle-contract",
+    "expected_outcome": "comparable",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "oracle-other-abi",
+    "family": "oracle-contract",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "expected_abi": "sysv-x64",
+      "actual_abi": "different-abi",
+      "same_input": true
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "oracle-contract",
+    "expected_outcome": "inconclusive",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "capture-retransmit",
+    "family": "capture-coverage",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "length": 4,
+      "segments": [
+        {
+          "seq": 2,
+          "hex": "4344"
+        },
+        {
+          "seq": 0,
+          "hex": "4142"
+        },
+        {
+          "seq": 0,
+          "hex": "4142"
+        }
+      ]
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "capture-coverage",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "capture-gap",
+    "family": "capture-coverage",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "length": 4,
+      "segments": [
+        {
+          "seq": 0,
+          "hex": "4142"
+        },
+        {
+          "seq": 3,
+          "hex": "44"
+        }
+      ]
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "capture-coverage",
+    "expected_outcome": "inconclusive",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "routing-unresolved",
+    "family": "routing-example",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "acceptable_skill_sets": [
+        [
+          "ghidra-static"
+        ],
+        [
+          "re-dynamic"
+        ]
+      ]
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "routing-set",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "routing-math",
+    "family": "routing-example",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "acceptable_skill_sets": [
+        [
+          "ctf-crypto"
+        ]
+      ]
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "routing-set",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "revision-stale",
+    "family": "revision-example",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "before_child": "synthetic-child",
+      "after_child": "synthetic-child",
+      "reviewed_revision": 1,
+      "result_revision": 2
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "revision-scope",
+    "expected_outcome": "inconclusive",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "revision-current",
+    "family": "revision-example",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "before_child": "synthetic-child",
+      "after_child": "synthetic-child",
+      "reviewed_revision": 2,
+      "result_revision": 2
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "revision-scope",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "capability-explicit",
+    "family": "authorization",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "granted": [
+        "fixture_calculate"
+      ],
+      "limit": false
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "preflight",
+    "expected_outcome": "checked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  },
+  {
+    "id": "quota-unmediated",
+    "family": "authorization",
+    "purpose": "Check a synthetic condition and reject an overclaim or wrong result",
+    "fixture": {
+      "granted": [
+        "fixture_calculate"
+      ],
+      "limit": true
+    },
+    "applicability": "Only the explicit synthetic inputs and declared contract",
+    "checker": "preflight",
+    "expected_outcome": "blocked",
+    "evidence_scope": "Local fixture only; not target acceptance",
+    "limits": {
+      "external_model_calls": 0,
+      "external_target_requests": 0
+    }
+  }
+]

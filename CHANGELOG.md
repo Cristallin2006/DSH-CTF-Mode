@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Knowledge update, 2026-10-21
+
+- Four small professional core cards using the existing v1 reference policy; specialist topics remain on demand. No orchestration engine/schema/permission changes.
+- Initial legacy references now state conditions instead of universal tool order, root-cause claims or broad daemon cleanup.
+- `crypto_sanity.py`: explicit Base64 alphabet/padding; unknown padding exits 3; JSON diagnostics; preserved binary bytes and exact newline checks by default (`--strip-final-newline` opts into line-content checks). Legacy Base64 defaults and successful keys remain. See [compatibility](tests/knowledge/README.md).
+- `model_diff.py`: pattern descriptions no longer exclude algorithm/model causes; output explicitly records an undetermined root cause for divergences.
+- Fourteen format/diagnostic tests, 18 public samples (8 production-tool samples + 10 authored grader fixtures), and actual professional-card native delivery/cost checks. Synthetic checks are not model solving or routing scores.
+
 ## v0.7.0 Preview — 2026-10-21
 
 Experimental distribution release. Runtime orchestration remains version 0.7.0; the new onboarding tools do not alter an existing installation automatically.
