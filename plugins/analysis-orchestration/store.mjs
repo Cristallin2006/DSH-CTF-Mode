@@ -1,10 +1,10 @@
-import {skillPlan} from './materials.mjs?revision=0.7.0';
+import {skillPlan} from './materials.mjs?revision=0.7.1';
 import {DatabaseSync} from 'node:sqlite';
 import {randomUUID,createHash} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {executionPlan,lineage,route} from './planning.mjs?revision=0.7.0';
-import {handoff} from './contract.mjs?revision=0.7.0';
+import {executionPlan,lineage,route} from './planning.mjs?revision=0.7.1';
+import {handoff} from './contract.mjs?revision=0.7.1';
 
 export const hash=v=>createHash('sha256').update(v).digest('hex');
 export const identity=(pid=process.pid)=>{try{return fs.readFileSync('/proc/sys/kernel/random/boot_id','utf8').trim()+':'+fs.readFileSync('/proc/'+pid+'/stat','utf8').split(') ').at(-1).split(' ')[19];}catch{return null;}};

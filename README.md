@@ -18,6 +18,12 @@
 
 **TSecBench v1 本地模式实测（2026-10-18）：综合得分 96.94，获得点数 22300，答对 Flag 71/74。** 详见[本地模式跑分记录](#本地模式跑分记录)。
 
+## 目标架构地图（实验性，2026-10-21）
+
+主编排可用目标地图把组件关系、目标依赖与真实工作覆盖放在同一视图；所有节点和连线引用原记忆及版本，保留条件、推断、未知、冲突与失效。支持局部查看和有界分页；Solver 继续通过明确的记忆白名单读取材料。地图不证明连通、授权或完成，不强制简单任务建图。详见[使用与边界](skills/analysis-orchestration/references/target-map.md)。
+
+本次更新位于 main 分支，既有 v0.7.0 Preview 下载包不包含；尚无新的跑分结果。
+
 ## 知识更新（2026-10-21）
 
 本节更新位于 `main` 分支，尚未包含在既有 v0.7.0 Preview 下载包中；体验本次更新请使用当前分支源码。
@@ -39,6 +45,7 @@ flowchart TB
         S["持续型 Solver · 1 至 N 个<br/>独立子会话，负责分析与执行"]
         T["显式授权的执行工具<br/>Shell · Ghidra · 其他工具"]
         B["运行层：受限记忆 Broker<br/>当前子身份 · 授权白名单 · 来源范围"]
+        M["目标地图：版本引用视图<br/>组件与关系 · 目标依赖 · 真实工作覆盖"]
     end
 
     D[("同一 SQLite 状态库<br/>任务与目标代次 · work 与回执<br/>结构化记忆与来源修订")]
@@ -59,13 +66,16 @@ flowchart TB
     S -->|显式启用后的只读召回| B
     B -->|仅读取获准记录与原件| D
 
+    C -->|按需查看局部图、维护引用| M
+    M -->|核对记忆版本、代次与工作| D
+
     classDef agent fill:#e0f2fe,stroke:#0284c7,color:#0f172a;
     classDef runtime fill:#fef3c7,stroke:#d97706,color:#0f172a;
     classDef knowledge fill:#dcfce7,stroke:#16a34a,color:#0f172a;
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#0f172a;
     classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a;
     class C,S agent;
-    class O,B runtime;
+    class O,B,M runtime;
     class K knowledge;
     class D state;
     class U,T external;

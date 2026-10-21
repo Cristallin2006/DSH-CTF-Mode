@@ -1,5 +1,5 @@
 import {createHash} from 'node:crypto';
-import {eventSummary} from './contract.mjs?revision=0.7.0';
+import {eventSummary} from './contract.mjs?revision=0.7.1';
 const bytes=v=>Buffer.byteLength(JSON.stringify(v));
 const hash=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const n=(v,fallback,min,max,name)=>{v??=fallback;if(!Number.isSafeInteger(v)||v<min||v>max)throw Error('Invalid '+name);return v;};

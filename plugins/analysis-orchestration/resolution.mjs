@@ -1,6 +1,6 @@
-import {premiseBasis} from './premises.mjs?revision=0.7.0';
+import {premiseBasis} from './premises.mjs?revision=0.7.1';
 import {createHash} from 'node:crypto';
-import {live,text} from './store.mjs?revision=0.7.0';
+import {live,text} from './store.mjs?revision=0.7.1';
 
 const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
 const packed=v=>JSON.stringify(canonical(v));

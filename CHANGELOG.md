@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Target map v1 / orchestration 0.7.1, 2026-10-21
+
+- Optional parent-only `dsh_target_map`: typed target structure, goal dependencies and coverage from real objective-bound work. The map stores reviewed memory revision references, not copied evidence or work state.
+- Explicit endpoint revisions, per-target invalidation, original-file drift checks, conflict flags and bounded focused snapshot pages. Config references stay inferred; recorded observations are not independent verification.
+- Additive SQLite index/history tables; existing memory 0.2 candidate schema, Solver grants, completion guards and resource authority remain unchanged. No automatic exploration, dispatch, credential sharing or global Solver map access.
+- Isolated map and actual native-host permission regressions; no external model/target calls. This change has not been benchmarked and is not included in the existing v0.7.0 Preview archive.
+
 ## Unreleased — Knowledge update, 2026-10-21
 
 - Four small professional core cards using the existing v1 reference policy; specialist topics remain on demand. No orchestration engine/schema/permission changes.

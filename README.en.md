@@ -20,6 +20,12 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Experimental target map (2026-10-21)
+
+The coordinator can view target structure, goal dependencies and actual objective-bound work through a parent-only reference map. Nodes and edges pin original memory revisions, preserving conditions, uncertainty, conflicts and invalidation. Focused, bounded pages do not expand Solver grants or prove connectivity, permission or completion. Simple tasks need no map. See the [contract (Chinese)](skills/analysis-orchestration/references/target-map.md).
+
+Available on main; not included in the existing v0.7.0 Preview archive. No new benchmark result is claimed.
+
 ## Knowledge update (2026-10-21)
 
 This update is on `main` and is not included in the existing v0.7.0 Preview download. Use the current branch source to try it.
@@ -41,6 +47,7 @@ flowchart TB
         S["Continuable Solvers · 1 to N<br/>Independent child sessions for analysis and execution"]
         T["Explicitly granted execution tools<br/>Shell · Ghidra · other tools"]
         B["Runtime: restricted memory broker<br/>Current child identity · allowlist · source ranges"]
+        M["Target map: pinned reference view<br/>Components and relations · dependencies · actual work coverage"]
     end
 
     D[("One SQLite state database<br/>Tasks and target generations · work and receipts<br/>Structured memory and source revisions")]
@@ -61,13 +68,16 @@ flowchart TB
     S -->|Read-only recall after explicit opt-in| B
     B -->|Read only granted records and originals| D
 
+    C -->|Inspect focused views and maintain references| M
+    M -->|Check memory versions, target generations and work| D
+
     classDef agent fill:#e0f2fe,stroke:#0284c7,color:#0f172a;
     classDef runtime fill:#fef3c7,stroke:#d97706,color:#0f172a;
     classDef knowledge fill:#dcfce7,stroke:#16a34a,color:#0f172a;
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#0f172a;
     classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a;
     class C,S agent;
-    class O,B runtime;
+    class O,B,M runtime;
     class K knowledge;
     class D state;
     class U,T external;

@@ -20,6 +20,12 @@
 
 この README は[中国語版](README.md)と同じ概要を説明しています。リンク先のスキル本文と詳細資料は主に中国語です。
 
+## 目標構成マップ（実験的、2026-10-21）
+
+主エージェント向けの参照マップで、構成要素の関係、目標の依存関係、実際の作業状態を確認できます。ノードと辺は元の記憶の版を参照し、条件、推論、未知、矛盾、失効を保持します。局所表示とサイズ制限付きページに対応し、Solver の権限は拡大しません。接続、許可、完了の証明にはならず、簡単なタスクでは不要です。[契約（中国語）](skills/analysis-orchestration/references/target-map.md)を参照してください。
+
+main ブランチの更新であり、既存の v0.7.0 Preview 配布物には含まれません。新しいベンチマーク結果はありません。
+
 ## 知識更新（2026-10-21）
 
 この更新は `main` ブランチにあり、既存の v0.7.0 Preview 配布物には含まれません。試す場合は現在のブランチのソースをご利用ください。
@@ -41,6 +47,7 @@ flowchart TB
         S["継続型 Solver・1 から N<br/>独立した子セッションで分析・実行"]
         T["明示的に許可された実行ツール<br/>Shell・Ghidra・その他のツール"]
         B["ランタイム：限定メモリ Broker<br/>現在の子識別情報・許可リスト・原資料の範囲"]
+        M["目標マップ：版を固定した参照ビュー<br/>構成と関係・目標依存・実際の作業状態"]
     end
 
     D[("同一の SQLite 状態データベース<br/>タスクと対象の世代・work と配布記録<br/>構造化メモリと出典の改訂")]
@@ -61,13 +68,16 @@ flowchart TB
     S -->|明示的な有効化後に読み取り| B
     B -->|許可された記録と原資料のみ読み取り| D
 
+    C -->|局所表示と参照の更新| M
+    M -->|記憶の版・目標世代・作業を確認| D
+
     classDef agent fill:#e0f2fe,stroke:#0284c7,color:#0f172a;
     classDef runtime fill:#fef3c7,stroke:#d97706,color:#0f172a;
     classDef knowledge fill:#dcfce7,stroke:#16a34a,color:#0f172a;
     classDef state fill:#ede9fe,stroke:#7c3aed,color:#0f172a;
     classDef external fill:#f1f5f9,stroke:#64748b,color:#0f172a;
     class C,S agent;
-    class O,B runtime;
+    class O,B,M runtime;
     class K knowledge;
     class D state;
     class U,T external;

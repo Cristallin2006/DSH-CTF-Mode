@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
-import {live,text} from './store.mjs?revision=0.7.0';
-import {trace,taskContext} from './contract.mjs?revision=0.7.0';
+import {live,text} from './store.mjs?revision=0.7.1';
+import {trace,taskContext} from './contract.mjs?revision=0.7.1';
 
 const short=e=>String(e?.message??e).slice(0,500);
 export class Continuable {
