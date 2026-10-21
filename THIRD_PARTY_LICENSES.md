@@ -4,6 +4,10 @@
 
 ## 一、直接收录 / 衍生内容
 
+### README 黑客版鲸鱼娘封面
+
+[assets/social-preview.png](assets/social-preview.png) 为 AI 生成二创，角色设计参考 [TreapGoGo/deepseek-whale-girl](https://github.com/TreapGoGo/deepseek-whale-girl) 网站首页的“Q 版大肥鱼三视图与细节”，重绘为使用笔记本电脑的 CTF 黑客造型。原图未直接收录；原画作者未单独标明，不将资源库维护者推定为画师。原图规格、来源、改动与许可边界见 [封面说明](assets/ARTWORK.md)。上游网站代码的 MIT 不涵盖所有图像；本仓库不对参考角色或上游图片作新增授权。鲸鱼娘为社区非官方形象。
+
 | 上游 | 许可 | 用于 |
 |---|---|---|
 | [ljagiello/ctf-skills](https://github.com/ljagiello/ctf-skills) | MIT | ctf-web / ctf-misc / ctf-crypto 的知识框架与部分配方，以及逆向资料中的比较方向/诱饵提示等（经条件校准与改造） |

@@ -2,7 +2,9 @@
 
 [简体中文](README.md) | **English** | [日本語](README.ja.md)
 
-![DSH-CTF-Skill: specialist skills, continuable Solvers and scoped memory](assets/social-preview.png)
+![Hacker Whale Girl: DSH-CTF-Skill full-stack CTF team](assets/social-preview.png)
+
+<sub>Character reference: Q-style Whale Girl from the [community asset library](https://treapgogo.github.io/deepseek-whale-girl/). AI-generated hacker reinterpretation; unofficial. [Source image details and generation notes](assets/ARTWORK.md)</sub>
 
 > **Turn your DeepSeek into a full-stack CTF team.**
 

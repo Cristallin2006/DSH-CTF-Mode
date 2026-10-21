@@ -2,7 +2,9 @@
 
 [简体中文](README.md) | [English](README.en.md) | **日本語**
 
-![DSH-CTF-Skill：専門スキル、継続型 Solver、範囲を制限したメモリ](assets/social-preview.png)
+![ハッカー版クジラ娘：DSH-CTF-Skill のフルスタック CTF チーム](assets/social-preview.png)
+
+<sub>キャラクター参考：[クジラ娘コミュニティ素材集](https://treapgogo.github.io/deepseek-whale-girl/)の Q 版大肥魚。AI 生成のハッカー版二次創作で、非公式の形象です。[原画像情報と生成記録](assets/ARTWORK.md)</sub>
 
 > **あなたの DeepSeek を、フルスタック CTF チームに。**
 

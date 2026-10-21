@@ -2,7 +2,9 @@
 
 **简体中文** | [English](README.en.md) | [日本語](README.ja.md)
 
-![DSH-CTF-Skill：专业技能、持续型 Solver 与受限记忆](assets/social-preview.png)
+![黑客版大肥鱼：DSH-CTF-Skill 全栈 CTF 团队](assets/social-preview.png)
+
+<sub>角色参考：[鲸鱼娘开源资产库](https://treapgogo.github.io/deepseek-whale-girl/)的 Q 版大肥鱼；本图为 AI 生成黑客版二创，非官方形象。[原图信息与生成说明](assets/ARTWORK.md)</sub>
 
 > **让你的大肥鱼，变成一支全栈 CTF 团队。**
 

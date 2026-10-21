@@ -32,8 +32,9 @@ Installation feedback, compatibility fixes and small reproductions are welcome. 
 
 ## Assets
 
-- [Social card, PNG](../assets/social-preview.png) — 1280 × 640; suitable for repository Settings → Social preview.
-- [Editable SVG](../assets/social-preview.svg).
+- [README cover, PNG](../assets/social-preview.png) — 1774 × 887; AI-generated hacker Whale Girl with project information, without a release version.
+- [Character reference, source image details and attribution](../assets/ARTWORK.md).
+- [Generation prompt](../assets/hacker-whale-prompt.md). The cover is a raster illustration; no editable SVG source is provided.
 - [Quick start](QUICKSTART.md) and [runnable examples](../examples/README.md).
 
-The synthetic examples are not recordings of autonomous model solving. The social card is a project introduction, not an official benchmark endorsement.
+The synthetic examples are not recordings of autonomous model solving. The cover is an unofficial community-character reinterpretation and project introduction, not an official DeepSeek or benchmark endorsement. The code license does not grant additional rights to upstream character artwork; see the attribution above.
