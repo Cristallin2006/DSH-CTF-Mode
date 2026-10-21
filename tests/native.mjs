@@ -1,3 +1,4 @@
+import {expandWork} from './native-client.mjs';
 import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -81,7 +82,7 @@ try{
   async function call(name,args,error=false){const v=await ctx.tools.execute({name,callId:randomUUID(),agent:handle.agent,arguments:args,signal:new AbortController().signal});if(error){assert(v.isError,JSON.stringify(v));return;}assert(!v.isError,JSON.stringify(v));return JSON.parse(v.content.filter(x=>x.type==='text').map(x=>x.text).join(''));}
   const task=(await call('analysis_session',{action:'init',options:{goal:'Calculate a local synthetic result without network',data:{network:'forbidden'}}})).result.id;
   await call('analysis_session',{action:'target',task,options:{id:'local',data:{endpoint:'local-fixture',password:'must-not-be-handed-off'}}});await call('dsh_memory_write',{action:'open',task,options:{}});
-  const orch=(action,options={},error=false)=>call('dsh_orchestration',{action,task,options:action==='add'?{execution_plan:{kind:'materials',requirements:[]},skill_plan:{required:[],none_reason:'Synthetic orchestration fixture has no specialist-method requirement'},...options}:options},error);
+  const orch=async(action,options={},error=false)=>{const value=await call('dsh_orchestration',{action,task,options:action==='add'?{execution_plan:{kind:'materials',requirements:[]},skill_plan:{required:[],none_reason:'Synthetic orchestration fixture has no specialist-method requirement'},...options}:options},error);return action==='result'&&options.view==='detail'?expandWork(call,task,value):value;};
   const enabled=await orch('enable',{heartbeat_ms:1000});assert.equal(enabled.expires,null);assert.equal(enabled.max_wakeups,null);
   const noCapability=await orch('add',{key:'preflight-native',question:'PREFLIGHT_BLOCKED',success:'Do not call a model without required execution capability',execution_plan:{kind:'execution',requirements:[{purpose:'Local synthetic probe',any_of:['fixture_probe']}]}});const beforeBlocked=modelState.size;assert.equal((await orch('dispatch',{work:[noCapability.id]})).results[0].state,'not_started');assert.equal(modelState.size,beforeBlocked);await orch('cancel',{work:noCapability.id,reason:'Missing-capability fixture complete'});
   await call('dsh_solver_feedback',{action:'progress',report:{summary:'Root cannot impersonate Solver'}},true);

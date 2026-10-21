@@ -14,13 +14,13 @@ export const guidanceSchema={type:'object',properties:{observation:str,hypothesi
 function object(v,keys,name){if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).some(k=>!keys.includes(k)))throw Error('Invalid '+name);return v;}
 function list(v=[],name,max=16){if(!Array.isArray(v)||v.length>max)throw Error('Invalid '+name);return v.map(x=>text(x,name,2000));}
 const optional=(v,n,max=2000)=>v===undefined||v===''?'':text(v,n,max);
-function bounded(v,max,name){if(Buffer.byteLength(JSON.stringify(v))>max)throw Error(name+' too large; use evidence references');return v;}
+function bounded(v,max,name){if(Buffer.byteLength(JSON.stringify(v))>max)throw Error(name+' too large; no content was truncated. Preserve critical constraints; use explicit references for noncritical bulk material');return v;}
 export function handoff(v={}){
   object(v,['inputs','claims','hypotheses','failure_boundaries','constraints','responsibility'],'handoff');
   const inputs=v.inputs??[],claims=v.claims??[];if(!Array.isArray(inputs)||inputs.length>16||!Array.isArray(claims)||claims.length>16)throw Error('Invalid handoff records');
-  return bounded({inputs:inputs.map(x=>{object(x,['ref','description'],'input');return {ref:text(x.ref,'input ref',2000),description:optional(x.description,'input description')};}),
+  const result={inputs:inputs.map(x=>{object(x,['ref','description'],'input');return {ref:text(x.ref,'input ref',2000),description:optional(x.description,'input description')};}),
     claims:claims.map(x=>{object(x,['statement','evidence_refs','verification','conditions'],'claim');const d={statement:text(x.statement,'claim',3000),evidence_refs:list(x.evidence_refs,'evidence refs'),verification:x.verification??'untested',conditions:optional(x.conditions,'claim conditions')};if(!['untested','tested'].includes(d.verification)||d.verification==='tested'&&!d.evidence_refs.length)throw Error('Tested claim needs explicit evidence references; no acceptance promotion');return d;}),
-    hypotheses:list(v.hypotheses,'hypotheses'),failure_boundaries:list(v.failure_boundaries,'failure boundaries'),constraints:list(v.constraints,'constraints'),responsibility:optional(v.responsibility,'responsibility')},16384,'handoff');
+    hypotheses:list(v.hypotheses,'hypotheses'),failure_boundaries:list(v.failure_boundaries,'failure boundaries'),constraints:list(v.constraints,'constraints'),responsibility:optional(v.responsibility,'responsibility')};bounded({constraints:result.constraints,responsibility:result.responsibility},16384,'Critical handoff constraints');return result;
 }
 export function report(v){
   object(v,Object.keys(reportSchema.properties),'progress');
@@ -32,9 +32,9 @@ export function guidance(v){object(v,Object.keys(guidanceSchema.properties),'gui
 export function taskContext(store,r){
   const t=store.own(r.owner,r.task,true);
   const recorded={goal:t.goal??null,constraints:t.constraints??{},authority:'recorded task description; not new authorization'};
-  bounded(recorded,16384,'Recorded task context');
+  bounded({constraints:recorded.constraints},16384,'Recorded critical constraints');
   const targets=r.targets.map(x=>{const row=store.q('SELECT data FROM targets WHERE task=? AND id=? AND generation=?',r.task,x.id,x.generation);const raw=row?JSON.parse(row.data):{};const context={};for(const k of ['endpoint','url','host','port','service','fingerprint','description'])if(['string','number'].includes(typeof raw[k]))context[k]=raw[k];return {...x,context};});
-  bounded(targets,16384,'Target context');return {recorded_task:recorded,targets};
+  return {recorded_task:recorded,targets};
 }
 export function activity(w,now=Date.now(),interval=60000){
   const lastExecution=w.last_tool_finished??w.last_tool_started??w.started??now;

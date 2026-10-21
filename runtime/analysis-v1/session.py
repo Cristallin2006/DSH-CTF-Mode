@@ -15,7 +15,7 @@ import time
 import uuid
 from contextlib import contextmanager
 
-VERSION = '1.0.8'
+VERSION = '1.0.9'
 ROOT = Path(os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
 STATE = Path(os.environ.get('DSH_ANALYSIS_STATE', str(ROOT / 'analysis-state')))
 TRANSITIONS = {
@@ -158,19 +158,35 @@ def orchestration_premises(con, task, bindings):
     return {'bindings': bindings, 'nodes': sorted(nodes.values(), key=lambda n: n['id']), 'sources': sorted(sources.values(), key=lambda s: s['id'])}
 
 
+def orchestration_work_rows(con, task, epoch):
+    # Project metadata in SQLite; never load all historical task/result bodies.
+    query = """SELECT id,json_extract(data,'$.state') AS state,
+        json_extract(data,'$.result_revision') AS result_revision,json_extract(data,'$.review') AS review,
+        json_extract(data,'$.checkpoint.outcome') AS outcome,json_extract(data,'$.checkpoint.evidence_refs') AS refs
+        FROM orch_work WHERE task=? AND epoch=? ORDER BY id"""
+    for row in con.execute(query, (task, epoch)):
+        review = json.loads(row['review']) if row['review'] else None
+        yield {'id': row['id'], 'state': row['state'], 'result_revision': row['result_revision'] or 0,
+               'review': {'decision': review['decision'], 'result_revision': review.get('result_revision', 0)} if review else None,
+               'feedback': {'outcome': row['outcome'], 'evidence_refs': sorted(set(json.loads(row['refs'] or '[]')), key=lambda x: x.encode('utf-16-be', 'surrogatepass'))}}
+
+
 def orchestration_basis(con, task, run):
     data = get_task(con, task)
     targets = [dict(row) for row in con.execute('SELECT id,MAX(generation) AS generation FROM targets WHERE task=? GROUP BY id ORDER BY id', (task,))]
-    works = []
-    for row in con.execute('SELECT data FROM orch_work WHERE task=? AND epoch=?', (task, run['epoch'])):
-        work = json.loads(row[0])
-        review, feedback = work.get('review'), work.get('checkpoint') or {}
-        works.append({'id': work['id'], 'state': work['state'], 'result_revision': work.get('result_revision', 0),
-                      'review': {'decision': review['decision'], 'result_revision': review.get('result_revision', 0)} if review else None,
-                      'feedback': {'outcome': feedback.get('outcome'), 'evidence_refs': sorted(set(feedback.get('evidence_refs', [])))}})
+    previous = ((run.get('resolution_review') or {}).get('basis') or {}).get('works')
+    if not isinstance(previous, list):
+        digest, count = hashlib.sha256(), 0
+        for work in orchestration_work_rows(con, task, run['epoch']):
+            digest.update((json.dumps(work, ensure_ascii=True, sort_keys=True, separators=(',', ':')) + '\n').encode('ascii'))
+            count += 1
+        works = {'version': 2, 'count': count, 'sha256': digest.hexdigest()}
+    else:
+        # Read-only compatibility with existing 0.7 decisions; new JS decisions use v2.
+        works = list(orchestration_work_rows(con, task, run['epoch']))
     return {**({'premises': orchestration_premises(con, task, run['decision_premises'])} if run.get('decision_premises') else {}),
             'epoch': run['epoch'], 'goal': data.get('goal'), 'constraints': data.get('constraints') if data.get('constraints') is not None else {},
-            'targets': targets, 'works': sorted(works, key=lambda work: work['id'])}
+            'targets': targets, 'works': works}
 
 
 def require_orchestration_resolution(con, task):
@@ -188,25 +204,39 @@ def require_orchestration_resolution(con, task):
     resolution = review.get('resolution') or {}
     if resolution.get('decision') != 'complete' or resolution.get('goal_status') != 'fulfilled' or not resolution.get('completion_scope') or not resolution.get('evidence_refs'):
         raise ValueError('goal is not recorded fulfilled with delivery scope and evidence; retain checkpoint and pause/block, or supply a grounded complete resolution')
-    unresolved = resolution.get('unresolved')
-    if not isinstance(unresolved, list) or any(not isinstance(item, dict) or item.get('disposition') != 'out_of_scope' or not item.get('reason') for item in unresolved):
-        raise ValueError('in-scope unresolved objectives cannot be silently completed')
-    works = {json.loads(row[0])['id']: json.loads(row[0]) for row in con.execute('SELECT data FROM orch_work WHERE task=? AND epoch=?', (task, run['epoch']))}
-    for work in works.values():
-        if work['state'] in ('launching', 'running', 'stopping', 'cleanup_unknown', 'pending', 'returned'):
-            raise ValueError('unresolved orchestration branches remain; review or explicitly retire them')
-        if work['state'] == 'needs_more_evidence' and not any(item.get('work') == work['id'] for item in unresolved):
-            raise ValueError('needs_more_evidence branch must remain explicit in resolution')
-    refs = list(resolution['evidence_refs']) + [ref for item in unresolved for ref in item.get('evidence_refs', [])]
+    inline = resolution.get('unresolved')
+    if not isinstance(inline, list):
+        raise ValueError('unresolved issues must be explicit')
+    snapshot = resolution.get('issue_set')
+    if snapshot:
+        row = con.execute('SELECT * FROM orch_issue_snapshots WHERE id=? AND task=? AND epoch=?', (snapshot['id'], task, run['epoch'])).fetchone()
+        if not row or any(row[field] != snapshot[key] for field, key in [('basis', 'basis_key'), ('revision', 'revision'), ('count', 'count'), ('sha256', 'sha256')]):
+            raise ValueError('issue snapshot unavailable or changed')
+        digest, count = hashlib.sha256(), 0
+        for item in con.execute('SELECT key,data FROM orch_issue_snapshot_items WHERE snapshot=? ORDER BY key', (snapshot['id'],)):
+            digest.update((item['key'] + '\0' + item['data'] + '\n').encode('utf-8'))
+            count += 1
+        if count != row['count'] or digest.hexdigest() != row['sha256']:
+            raise ValueError('issue snapshot integrity check failed')
+    def issues():
+        yield from inline
+        if snapshot:
+            for item in con.execute('SELECT data FROM orch_issue_snapshot_items WHERE snapshot=? ORDER BY key', (snapshot['id'],)):
+                yield json.loads(item[0])
     targets = review['basis']['targets']
-    for ref in refs:
+    def validate_ref(ref):
         if not isinstance(ref, str):
             raise ValueError('invalid resolution evidence reference')
         if ref.startswith('work:') and '@' in ref:
             ident, revision = ref[5:].rsplit('@', 1)
-            work = works.get(ident)
+            row = con.execute('SELECT data FROM orch_work WHERE task=? AND id=? AND epoch=?', (task, ident, run['epoch'])).fetchone()
+            work = json.loads(row[0]) if row else None
             if not work or not revision.isdigit() or int(revision) != work.get('result_revision', 0) or not work.get('result') or run.get('targets') != targets:
                 raise ValueError('stale resolution work evidence')
+            if work.get('result_external'):
+                full = con.execute('SELECT body,sha256 FROM orch_results WHERE work=? AND revision=?', (ident, int(revision))).fetchone()
+                if not full or full['sha256'] != work.get('result_sha256') or hashlib.sha256(full['body'].encode('utf-8')).hexdigest() != full['sha256']:
+                    raise ValueError('full resolution result unavailable or changed')
         elif ref.startswith('record:'):
             evidence = con.execute('SELECT data FROM records WHERE task=? AND id=?', (task, ref[7:])).fetchone()
             if not evidence:
@@ -216,6 +246,22 @@ def require_orchestration_resolution(con, task):
                 raise ValueError('resolution evidence target generation is stale')
         else:
             raise ValueError('resolution evidence must be record:ID or work:ID@RESULT_REVISION')
+    covered = set()
+    for item in issues():
+        if not isinstance(item, dict) or item.get('disposition') != 'out_of_scope' or not item.get('reason'):
+            raise ValueError('in-scope unresolved objectives cannot be silently completed')
+        if item.get('work'):
+            if not con.execute('SELECT 1 FROM orch_work WHERE task=? AND epoch=? AND id=?', (task, run['epoch'], item['work'])).fetchone():
+                raise ValueError('issue work outside current epoch')
+            covered.add(item['work'])
+        for ref in item.get('evidence_refs', []): validate_ref(ref)
+    if con.execute("SELECT 1 FROM orch_work WHERE task=? AND epoch=? AND json_extract(data,'$.state') IN ('launching','running','stopping','cleanup_unknown','pending','returned') LIMIT 1", (task, run['epoch'])).fetchone():
+        raise ValueError('unresolved orchestration branches remain; review or explicitly retire them')
+    for row in con.execute("SELECT id FROM orch_work WHERE task=? AND epoch=? AND json_extract(data,'$.state')='needs_more_evidence'", (task, run['epoch'])):
+        if row['id'] not in covered:
+            raise ValueError('needs_more_evidence branch must remain explicit in resolution')
+    for ref in resolution['evidence_refs']: validate_ref(ref)
+
 
 def process_identity(pid):
     try:

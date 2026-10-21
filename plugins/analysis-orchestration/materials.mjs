@@ -1,4 +1,4 @@
-import {referencePolicy,readMaterial,referencePath} from './reference-policy.mjs?revision=0.7.1';
+import {referencePolicy,readMaterial,referencePath} from './reference-policy.mjs?revision=0.8.0';
 import {createHash} from 'node:crypto';
 
 const digest=value=>createHash('sha256').update(value).digest('hex');

@@ -20,6 +20,10 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Long tasks and complete materials (main)
+
+Cumulative work and map-key caps are removed. Long assignments, followups and received results retain full text with paged access; large unresolved sets use versioned batches. Critical constraints and required skill materials remain complete or explicitly blocked; large files use authorized input references. See the [contract (Chinese)](skills/analysis-orchestration/references/long-tasks.md). This update is not in the existing v0.7.0 Preview archive and makes no new benchmark claim.
+
 ## Experimental target map (2026-10-21)
 
 The coordinator can view target structure, goal dependencies and actual objective-bound work through a parent-only reference map. Nodes and edges pin original memory revisions, preserving conditions, uncertainty, conflicts and invalidation. Focused, bounded pages do not expand Solver grants or prove connectivity, permission or completion. Simple tasks need no map. See the [contract (Chinese)](skills/analysis-orchestration/references/target-map.md).

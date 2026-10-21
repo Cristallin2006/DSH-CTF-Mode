@@ -7,7 +7,7 @@
 | `analysis-hooks-sandbox` 1.1.2 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |
 | `analysis-memory` | 结构化记忆、目标地图 v1、`dsh_handoff` 材料交接，以及独立的只读有限协作 |
 | `analysis-control` | 按宿主导入策略控制 HTTP(S) 预算、速率、origin 与 vault 引用 |
-| `analysis-orchestration` 0.7.1 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
+| `analysis-orchestration` 0.8.0 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
 
 要求 Linux 原生文件系统上的独立状态目录（不要放到 WSL `/mnt/` 盘）。验收宿主为 DSH 0.1.5-rc.3、Node.js 24.21.0，需原生 SQLite 和持续型子代理接口。
 
@@ -51,7 +51,7 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state
     - id: analysis-orchestration
-      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.7.1
+      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.8.0
       config:
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state
@@ -83,3 +83,5 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
 升级后已有任务保持原状态；恢复前检查目标、授权与资源，再明确 `resume/followup`。回退代码前确认子代理收尾，保留当前状态库，不用旧数据库覆盖。
 
 目标地图是主会话的可选引用索引，不改变记忆 0.2 记录契约。首次启用附加 `mem_map_entries`/`mem_map_history` 表及 `mem_meta` 版本键；不重写既有记录。升级需维护重启加载代码，回退可保留附加表。使用与边界见[目标地图契约](../skills/analysis-orchestration/references/target-map.md)。
+
+0.8.0 的长任务更新附加 orch_results、orch_packets、orch_packet_reads、orch_issue_sets、orch_issues、orch_issue_snapshots、orch_issue_snapshot_items 表与查询索引；analysis-v1 更新为 1.0.9。旧任务和子会话不重建；新式工作摘要、结果及事项快照的旧代码回退限制见[长任务说明](../skills/analysis-orchestration/references/long-tasks.md)。

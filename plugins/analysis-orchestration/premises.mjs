@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {hash} from './store.mjs?revision=0.7.1';
+import {hash} from './store.mjs?revision=0.8.0';
 
 // This projection is mirrored by analysis-v1/session.py. It contains only
 // explicitly selected premise closures and never searches task-wide memory.

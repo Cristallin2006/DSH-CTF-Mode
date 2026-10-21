@@ -1,5 +1,5 @@
-import {hash,text,integer} from './store.mjs?revision=0.7.1';
-import {premiseBasis} from './premises.mjs?revision=0.7.1';
+import {hash,text,integer} from './store.mjs?revision=0.8.0';
+import {premiseBasis} from './premises.mjs?revision=0.8.0';
 
 const str={type:'string'},strings={type:'array',items:str,maxItems:16};
 export const memoryPlanSchema={type:'object',properties:{bindings:{type:'array',maxItems:40,items:{type:'object',properties:{record_id:str,revision:{type:'integer',minimum:1},use:{enum:['context','premise','challenge']}},required:['record_id','revision','use'],additionalProperties:false}},sources:{type:'array',maxItems:40,items:{type:'object',properties:{source_id:str,sha256:str,access:{enum:['full','ranges']},ranges:{type:'array',maxItems:16,items:{type:'array',items:{type:'integer',minimum:0},minItems:2,maxItems:2}}},required:['source_id','sha256','access'],additionalProperties:false}}},additionalProperties:false};

@@ -1,3 +1,4 @@
+import {expandWork} from './native-client.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -67,7 +68,7 @@ try{
   handle=await ctx.agents.create({sessionId:'skills-main-'+randomUUID(),meta:{cwd:workspace},agentOptions:{provider:'skill-delivery-local',model:'local'}});await handle.agent.whenIdle();
   const tool=async(name,args,error=false)=>{const v=await ctx.tools.execute({name,callId:randomUUID(),agent:handle.agent,arguments:args,signal:new AbortController().signal});if(error){assert(v.isError,JSON.stringify(v));return;}assert(!v.isError,JSON.stringify(v));return JSON.parse(v.content.filter(b=>b.type==='text').map(b=>b.text).join(''));};
   const task=(await tool('analysis_session',{action:'init',options:{goal:'Local required-skill material admission tests'}})).result.id;await tool('dsh_memory_write',{action:'open',task});
-  const orch=(action,options={},error=false)=>tool('dsh_orchestration',{action,task,options},error);await orch('enable');
+  const orch=async(action,options={},error=false)=>{const value=await tool('dsh_orchestration',{action,task,options},error);return action==='result'&&options.view==='detail'?expandWork(tool,task,value):value;};await orch('enable');
   const wait=async(id,state='returned',revision=1)=>{for(let i=0;i<200;i++){const w=await orch('result',{work:id,view:'detail'});if(w.state===state&&(w.result_revision??0)>=revision)return w;await new Promise(resolve=>setTimeout(resolve,20));}throw Error('Fixture did not settle: '+JSON.stringify(await orch('result',{work:id,view:'detail'})));};
   const add=async(question,plan=required,tools=[])=>orch('add',{key:question.toLowerCase(),question,success:'Preserve task and skill boundaries',execution_plan:{kind:'materials',requirements:[]},skill_plan:plan,tools});
   const run=async(question,plan=required,tools=[])=>{const w=await add(question,plan,tools);await orch('dispatch',{work:[w.id]});return wait(w.id);};

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Long tasks / orchestration 0.8.0, 2026-10-21
+
+- Removed cumulative 64-work / 512-map-key limits. Database-paged status prioritizes active/pending/review work; map coverage exposes every objective-bound branch, with streaming scoped consistency checks.
+- Long goals, task questions, handoffs, target descriptions and followups retain exact immutable text with bounded per-Solver material reads. Required reads gate execution; critical constraints and required skill/reference delivery remain complete or explicitly blocked. Large files remain explicit authorized input references.
+- Complete received Solver result revisions are stored separately with hashes; inline previews are marked. New `work_document` pages preserve exact stored work JSON, and large native replies use explicit summary markers to avoid host truncation.
+- Large unresolved sets are staged in CAS batches and frozen for resolution; all branches are checked consistently by JS and Python. Work basis v2 hashes stream metadata instead of retaining full history bodies. Runtime 1.0.9 reads previous decision bases without silently reclassifying them.
+- Offline acceptance covers 100 works/issues, 700 map keys, multi-MiB referenced input, long native messages/results and same-child retry. No external model service or target requests. Existing v0.7.0 download archives and historical benchmark claims are unchanged.
+
 ## Unreleased — Target map v1 / orchestration 0.7.1, 2026-10-21
 
 - Optional parent-only `dsh_target_map`: typed target structure, goal dependencies and coverage from real objective-bound work. The map stores reviewed memory revision references, not copied evidence or work state.

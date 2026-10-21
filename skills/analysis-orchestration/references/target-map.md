@@ -36,10 +36,12 @@ goal 节点绑定稳定 objective_ref；coverage 读取当前编排代次中该�
 {"action":"view","task":"TASK_ID","options":{"focus":["service:portal"],"radius":1,"limit":20,"max_bytes":8192}}
 ```
 
-focus 最多 8 个节点，radius=0 或 1；未指定 focus 时分页看全索引。输出有 total、snapshot、next_offset；续页传 offset 和原 expected_snapshot，状态变化会拒绝混页，重新从 0 获取。每页默认 8 KiB，上限 32 KiB，最多 50 项；每任务最多 512 个索引键（含已删除项），是元数据边界，不是探索额度。条件摘要有 complete 标记且始终 requires_original，决策前用 dsh_memory_read get 读取完整条件、未排除项及冲突组。地图更新只记录引用变化；不会执行扫描、唤醒模型或自动派单。
+focus 最多 8 个节点，radius=0 或 1；未指定 focus 时分页看全索引。输出有 total、snapshot、next_offset；续页传 offset 和原 expected_snapshot，状态变化会拒绝混页，重新从 0 获取。每页默认 8 KiB，上限 32 KiB，最多 50 项；累计索引键不再设 512 的硬上限，已删除键保留历史。Native 工具接口会把实际页预算收窄至约 12 KiB；为保持快照一致性仍流式核对所选范围的证据，优先使用局部图。条件摘要有 complete 标记且始终 requires_original，决策前用 dsh_memory_read get 读取完整条件、未排除项及冲突组。地图更新只记录引用变化；不会执行扫描、唤醒模型或自动派单。
 
 ## 共享与恢复边界
 
 首版是**主会话工具**，Solver 无全局地图读写能力。向 Solver 交付相关原记录时，使用现有 memory_plan 的显式记录白名单，原件另授予；需要布局摘要时可在 handoff 中提供局部报告，并保留依据引用和不确定性。中性复核仍从原件和中性问题出发，不自动塞入地图推断。未提供自动 Solver 子图接口，避免另开一条旁路绕过记忆授权和冲突组检查。
 
 地图索引与历史在原 SQLite 中独立附加表保存，重启保留；删除为留痕移除，不删除原记忆。旧记录、端点被修订或移除，相关边与绑定自动过期，主代理复核后显式更新引用。地图不会延长目标租约、扩大授权、放宽额度、共享凭据或恢复执行。升级先备份并排空工作；回退代码可保留附加表，不把旧数据库覆盖到新任务状态上。
+
+目标绑定的首屏工作摘要有 next_offset/total；更多工作用 `coverage options={key:绑定键,offset,limit,max_bytes,expected_snapshot}`，不再隐藏第 65 项以后的工作。覆盖状态同时报告绑定依据是否失效。长任务与完成审查见 [long-tasks.md](long-tasks.md)。

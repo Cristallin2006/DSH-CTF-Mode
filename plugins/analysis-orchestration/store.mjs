@@ -1,10 +1,10 @@
-import {skillPlan} from './materials.mjs?revision=0.7.1';
+import {skillPlan} from './materials.mjs?revision=0.8.0';
 import {DatabaseSync} from 'node:sqlite';
 import {randomUUID,createHash} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import {executionPlan,lineage,route} from './planning.mjs?revision=0.7.1';
-import {handoff} from './contract.mjs?revision=0.7.1';
+import {executionPlan,lineage,route} from './planning.mjs?revision=0.8.0';
+import {handoff} from './contract.mjs?revision=0.8.0';
 
 export const hash=v=>createHash('sha256').update(v).digest('hex');
 export const identity=(pid=process.pid)=>{try{return fs.readFileSync('/proc/sys/kernel/random/boot_id','utf8').trim()+':'+fs.readFileSync('/proc/'+pid+'/stat','utf8').split(') ').at(-1).split(' ')[19];}catch{return null;}};
@@ -19,7 +19,10 @@ export class Store {
     this.db.exec(`CREATE TABLE IF NOT EXISTS orch_runs(task TEXT PRIMARY KEY,owner TEXT NOT NULL,host TEXT NOT NULL,pid INTEGER NOT NULL,identity TEXT NOT NULL,data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS orch_work(id TEXT PRIMARY KEY,task TEXT NOT NULL,epoch TEXT NOT NULL,work_key TEXT NOT NULL,data TEXT NOT NULL,UNIQUE(task,epoch,work_key));
       CREATE TABLE IF NOT EXISTS orch_events(seq INTEGER PRIMARY KEY AUTOINCREMENT,task TEXT NOT NULL,epoch TEXT NOT NULL,work TEXT,kind TEXT NOT NULL,data TEXT NOT NULL,at INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS orch_objectives(task TEXT NOT NULL,scope TEXT NOT NULL,objective TEXT NOT NULL,work TEXT NOT NULL,PRIMARY KEY(task,scope,objective));`);
+      CREATE TABLE IF NOT EXISTS orch_objectives(task TEXT NOT NULL,scope TEXT NOT NULL,objective TEXT NOT NULL,work TEXT NOT NULL,PRIMARY KEY(task,scope,objective));
+      CREATE TABLE IF NOT EXISTS orch_results(work TEXT NOT NULL,revision INTEGER NOT NULL,body TEXT NOT NULL,sha256 TEXT NOT NULL,PRIMARY KEY(work,revision));
+      CREATE INDEX IF NOT EXISTS orch_work_state ON orch_work(task,epoch,json_extract(data,'$.state'));
+      CREATE INDEX IF NOT EXISTS orch_work_objective ON orch_work(task,epoch,json_extract(data,'$.objective_ref'));`);
   }
   q(sql,...v){return this.db.prepare(sql).get(...v);} all(sql,...v){return this.db.prepare(sql).all(...v);} sql(sql,...v){return this.db.prepare(sql).run(...v);}
   tx(fn){this.db.exec('BEGIN IMMEDIATE');try{const v=fn();this.db.exec('COMMIT');return v;}catch(e){this.db.exec('ROLLBACK');throw e;}}
@@ -33,6 +36,40 @@ export class Store {
   save(r){const {task,owner,host,pid,identity,...data}=r;this.sql('INSERT INTO orch_runs VALUES(?,?,?,?,?,?) ON CONFLICT(task) DO UPDATE SET owner=excluded.owner,host=excluded.host,pid=excluded.pid,identity=excluded.identity,data=excluded.data',task,owner,host,pid,identity,JSON.stringify(data));}
   work(task,id){const r=this.q('SELECT data FROM orch_work WHERE task=? AND id=?',task,id);if(!r)throw Error('Work unavailable');return JSON.parse(r.data);}
   works(r){return this.all('SELECT data FROM orch_work WHERE task=? AND epoch=? ORDER BY rowid',r.task,r.epoch).map(x=>JSON.parse(x.data));}
+  counts(r){return Object.fromEntries(this.all("SELECT json_extract(data,'$.state') AS state,COUNT(*) AS n FROM orch_work WHERE task=? AND epoch=? GROUP BY json_extract(data,'$.state')",r.task,r.epoch).map(x=>[x.state,x.n]));}
+  hasStates(r,states){return !!this.q("SELECT 1 AS yes FROM orch_work WHERE task=? AND epoch=? AND json_extract(data,'$.state') IN (SELECT value FROM json_each(?)) LIMIT 1",r.task,r.epoch,JSON.stringify([...states]));}
+  activeWorks(r){return this.all("SELECT data FROM orch_work WHERE task=? AND epoch=? AND json_extract(data,'$.state') IN ('launching','running','stopping','cleanup_unknown')",r.task,r.epoch).map(x=>JSON.parse(x.data));}
+  pageWorks(r,{offset=0,limit=8,work,objective_ref,states}={}){
+    if(states!==undefined&&(!Array.isArray(states)||states.length<1||states.length>16||states.some(s=>typeof s!=='string'||s.length>100)))throw Error('Invalid work state filter');
+    const clause='task=? AND epoch=? AND (? IS NULL OR id=?) AND (? IS NULL OR json_extract(data,\'$.objective_ref\')=?)'+(states===undefined?'':" AND json_extract(data,'$.state') IN (SELECT value FROM json_each(?))"),args=[r.task,r.epoch,work??null,work??null,objective_ref??null,objective_ref??null,...states===undefined?[]:[JSON.stringify(states)]];
+    const order="CASE WHEN json_extract(data,'$.state') IN ('launching','running','stopping','cleanup_unknown') THEN 0 WHEN json_extract(data,'$.state')='pending' THEN 1 WHEN json_extract(data,'$.state') IN ('returned','needs_more_evidence') THEN 2 ELSE 3 END,rowid";
+    return {total:this.q('SELECT COUNT(*) AS n FROM orch_work WHERE '+clause,...args).n,items:this.all('SELECT data FROM orch_work WHERE '+clause+' ORDER BY '+order+' LIMIT ? OFFSET ?',...args,limit,offset).map(x=>JSON.parse(x.data))};
+  }
+  *basisWorks(r){
+    // Do not load question, handoff, skill bodies or result previews to supervise history.
+    for(const row of this.db.prepare("SELECT id,json_extract(data,'$.state') AS state,json_extract(data,'$.result_revision') AS result_revision,json_extract(data,'$.review') AS review,json_extract(data,'$.checkpoint.outcome') AS outcome,json_extract(data,'$.checkpoint.evidence_refs') AS refs FROM orch_work WHERE task=? AND epoch=? ORDER BY id").iterate(r.task,r.epoch)){
+      const review=row.review?JSON.parse(row.review):null;
+      yield {id:row.id,state:row.state,result_revision:row.result_revision??0,review:review?{decision:review.decision,result_revision:review.result_revision??0}:null,feedback:{outcome:row.outcome??null,evidence_refs:[...new Set(JSON.parse(row.refs??'[]'))].sort()}};
+    }
+  }
+  statusDigest(r){
+    const h=createHash('sha256');
+    for(const row of this.db.prepare("SELECT id,json_extract(data,'$.state') AS state,json_extract(data,'$.result_revision') AS result_revision,json_extract(data,'$.checkpoint.revision') AS checkpoint,json_extract(data,'$.preflight') AS preflight,json_extract(data,'$.skill_delivery.state') AS skills,json_extract(data,'$.material_delivery.state') AS materials FROM orch_work WHERE task=? AND epoch=? ORDER BY id").iterate(r.task,r.epoch))h.update(JSON.stringify(row)+'\n');
+    return h.digest('hex');
+  }
+  hasDependents(r,id){return !!this.q("SELECT 1 FROM orch_work w WHERE task=? AND epoch=? AND w.id<>? AND json_extract(data,'$.state') NOT IN ('retired','cancelled') AND EXISTS(SELECT 1 FROM json_each(w.data,'$.depends_on') WHERE value=?) LIMIT 1",r.task,r.epoch,id,id);}
+  saveResult(w,raw){
+    const revision=Math.max(w.result_revision??0,this.q('SELECT COALESCE(MAX(revision),0) AS n FROM orch_results WHERE work=?',w.id).n)+1,digest=hash(raw);
+    this.sql('INSERT INTO orch_results VALUES(?,?,?,?)',w.id,revision,raw,digest);
+    w.result_revision=revision;w.result=raw.length>32768?raw.slice(0,32768):raw;
+    w.result_external=raw.length>32768;w.result_preview_truncated=w.result_external;w.result_truncated=false;w.result_sha256=digest;
+  }
+  fullResult(w){
+    if(!w.result_external)return w;
+    const row=this.q('SELECT body,sha256 FROM orch_results WHERE work=? AND revision=?',w.id,w.result_revision);
+    if(!row||row.sha256!==w.result_sha256||hash(row.body)!==row.sha256)throw Error('Full result unavailable or changed; inspect original native session');
+    return {...w,result:row.body,result_truncated:false,original_source:'Immutable complete received result revision in orch_results; original native child remains available'};
+  }
   saveWork(w){this.sql('INSERT INTO orch_work VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',w.id,w.task,w.epoch,w.key,JSON.stringify(w));}
   event(r,work,kind,data={}){this.sql('INSERT INTO orch_events(task,epoch,work,kind,data,at) VALUES(?,?,?,?,?,?)',r.task,r.epoch,work,kind,JSON.stringify(data),Date.now());}
   events(r,work=null,after=0){return this.all('SELECT * FROM orch_events WHERE task=? AND epoch=? AND seq>? AND (? IS NULL OR work=?) ORDER BY seq DESC LIMIT 40',r.task,r.epoch,after,work,work).reverse().map(x=>({...x,data:JSON.parse(x.data)}));}
@@ -45,7 +82,7 @@ export class Store {
   enabled(owner,task,host){this.own(owner,task,true);const r=this.run(task);if(!r||r.owner!==owner||r.host!==host||r.state!=='enabled')throw Error('Enable or explicitly resume orchestration in this host first');this.scope(r);return r;}
   create(owner,task,host,opts){
     return this.tx(()=>{this.own(owner,task,true);const old=this.run(task);
-      if(old&&this.works(old).some(w=>live.has(w.state)))throw Error('Previous Solver cleanup must be confirmed first');
+      if(old&&this.hasStates(old,live))throw Error('Previous Solver cleanup must be confirmed first');
       if(old&&['enabled','paused'].includes(old.state))throw Error('Existing orchestration: use status/resume/disable, not enable again');
       if(this.q("SELECT name FROM sqlite_master WHERE name='control_pins'")&&this.q('SELECT task FROM control_pins WHERE actor=?',owner))throw Error('Strict HTTP control does not yet support executable Solvers; keep existing controller protection');
       if(this.q("SELECT name FROM sqlite_master WHERE name='mem_work'")&&this.q("SELECT id FROM mem_work WHERE task=? AND state='running'",task))throw Error('Wait for existing read-only collaboration to settle');
@@ -54,7 +91,7 @@ export class Store {
     });
   }
   add(r,o){return this.tx(()=>{
-    text(o.key,'key',160);text(o.question,'question');text(o.success,'success criteria',4000);
+    text(o.key,'key',160);text(o.question,'question',Infinity);text(o.success,'success criteria',4000);
     const previous=this.q('SELECT data FROM orch_work WHERE task=? AND epoch=? AND work_key=?',r.task,r.epoch,o.key);
     const input={key:o.key,question:o.question,success:o.success,depends_on:o.depends_on??[],tools:o.tools??[],role:o.role??'solver',observe_work:o.observe_work??null,timeout_ms:o.timeout_ms??null,max_steps:o.max_steps??null};
     Object.assign(input,lineage(o));
@@ -64,7 +101,6 @@ export class Store {
     if(o.handoff!==undefined)input.handoff=handoff(o.handoff);
     if(previous){const w=JSON.parse(previous.data);if(w.fingerprint!==this.fingerprint(input))throw Error('Work key reused with different content');return w;}
     if(input.assignment_kind==='primary'&&input.objective_ref){const existing=this.objective(r,input.objective_ref);if(existing)return {...existing,route:route(existing),deduplicated:true};}
-    if(this.works(r).length>=64)throw Error('Work limit reached; review scope before adding more');
     if(!Array.isArray(input.depends_on)||input.depends_on.length>16||new Set(input.depends_on).size!==input.depends_on.length)throw Error('Invalid dependencies');
     for(const id of input.depends_on){const d=this.work(r.task,id);if(d.epoch!==r.epoch)throw Error('Dependency belongs to old epoch');}
     if(!Array.isArray(input.tools)||input.tools.length>24||input.tools.some(x=>typeof x!=='string'))throw Error('Explicit tool list required');
@@ -82,8 +118,8 @@ export class Store {
   claim(r,id,host,maxGlobal,continuation=false){return this.tx(()=>{
     this.scope(r);const fresh=this.run(r.task);if(fresh.state!=='enabled'||fresh.host!==host)throw Error('Orchestration paused or changed');
     const w=this.work(r.task,id);if(w.epoch!==r.epoch||(!continuation&&w.state!=='pending')||(continuation&&(w.mode!=='continuable'||live.has(w.state))))throw Error('Work is not pending in this epoch');
-    if(this.works(r).filter(x=>live.has(x.state)).length>=r.max_parallel)throw Error('Task concurrency reached');
-    const n=this.all('SELECT data FROM orch_work').map(x=>JSON.parse(x.data)).filter(x=>live.has(x.state)).length;if(n>=maxGlobal)throw Error('Host concurrency reached or previous cleanup unconfirmed');
+    const counts=this.counts(r);if([...live].reduce((n,k)=>n+(counts[k]??0),0)>=r.max_parallel)throw Error('Task concurrency reached');
+    const n=this.q("SELECT COUNT(*) AS n FROM orch_work WHERE json_extract(data,'$.state') IN ('launching','running','stopping','cleanup_unknown')").n;if(n>=maxGlobal)throw Error('Host concurrency reached or previous cleanup unconfirmed');
     for(const id of w.depends_on)if(this.work(r.task,id).state!=='adopted')throw Error('Dependency must be reviewed and adopted first');
     w.state='launching';w.started=Date.now();w.host=host;w.last_activity=Date.now();this.saveWork(w);this.event(r,w.id,'launching');return w;
   });}
