@@ -22,6 +22,8 @@ This README covers the same overview as the [Chinese version](README.md). Linked
 
 ## Knowledge update (2026-10-21)
 
+This update is on `main` and is not included in the existing v0.7.0 Preview download. Use the current branch source to try it.
+
 Static RE, Crypto, Web and Pwn now declare small core reference cards delivered in full for selected Solver skills. Topic material stays on demand and other skills remain callable. Initial legacy references now distinguish technical requirements from heuristics. Format checks support explicit Base64 contracts and preserve binary/newline input. See [knowledge checks and CLI compatibility](tests/knowledge/README.md). This is not a new benchmark result.
 
 ## Architecture

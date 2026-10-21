@@ -4,6 +4,8 @@
 
 先下载 [v0.7.0 Preview](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) 的源码包并解压，或克隆仓库；以下命令均在仓库根目录执行。安装器仅使用 Python 标准库，不下载 DSH、模型或专业工具。
 
+2026-10-21 的四域核心卡与格式契约更新目前位于 `main`，不包含在上述旧标签下载包中；需要本次知识更新时使用当前分支源码。This knowledge update requires `main`. 今回の知識更新には `main` を使用してください。
+
 ## 1. 不安装，先运行
 
 Python 3.10+，Windows、Linux、WSL 均可（Windows 将 `python3` 换成 `python`）：
