@@ -124,7 +124,7 @@ export class Engine {
       }
       return {kind:'deny',reason:'Coordinator cannot replace task identity while orchestration is enabled; disable first'};
     }
-    if(['dsh_memory_read','dsh_memory_write','dsh_handoff','dsh_target_map'].includes(exec.name)||coordinatorReads.has(exec.name))return next();
+    if(['dsh_memory_read','dsh_memory_write','dsh_handoff','dsh_target_map','dsh_knowledge'].includes(exec.name)||coordinatorReads.has(exec.name))return next();
     return {kind:'deny',reason:'This task uses a dedicated coordinator. Delegate execution with dsh_orchestration; shell, network, writes and alternate dispatch are unavailable in this role.'};
   }
   async aroundTool(exec,next){

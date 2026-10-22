@@ -20,6 +20,10 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Optional knowledge discovery and project methods (experimental, 2026-10-22)
+
+`dsh_knowledge` offers bilingual reference navigation with matching reasons, prerequisites and counterexamples. Explicitly reviewed, redacted method cards can be reused across tasks in the same workspace. Lookup and adoption are optional; changed sources require rechecking. No automatic skill edits or additional Solver permissions. See the [contract (Chinese)](skills/analysis-memory/references/knowledge-library.md). Available on main, not in the existing v0.7.0 Preview archive; no new benchmark claim.
+
 ## Long tasks and complete materials (main)
 
 Cumulative work and map-key caps are removed. Long assignments, followups and received results retain full text with paged access; large unresolved sets use versioned batches. Critical constraints and required skill materials remain complete or explicitly blocked; large files use authorized input references. See the [contract (Chinese)](skills/analysis-orchestration/references/long-tasks.md). This update is not in the existing v0.7.0 Preview archive and makes no new benchmark claim.

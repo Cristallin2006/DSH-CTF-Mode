@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Optional knowledge library v1 / orchestration 0.8.1, 2026-10-22
+
+- Bilingual, transparent lexical navigation for an initial 12 maintained specialist references. Original native skill visibility and local providers apply; exact Unicode pages retain hashes and snapshot checks. Unlisted skills remain discoverable.
+- Workspace-scoped method cards explicitly distilled from reviewed method_candidate records. Private drafts, redaction review, immutable card bodies, versioned publish/reject/retire, source-change warnings and complete paged reads. No original task/source identifiers or evidence bodies are exported with cards.
+- Lookup and adoption are optional. No new solving gate, background curator, vector service, automatic skill changes or Solver/global-project access. No total method-count cap or recent-history scan window.
+- Additive method tables; memory candidate schema 0.2 and runtime 1.0.9 stay unchanged. Offline acceptance includes 505 methods and actual native coordinator/Solver boundaries, with no external model or target calls. Historical benchmark and v0.7.0 download archives are unchanged.
+
 ## Unreleased — Long tasks / orchestration 0.8.0, 2026-10-21
 
 - Removed cumulative 64-work / 512-map-key limits. Database-paged status prioritizes active/pending/review work; map coverage exposes every objective-bound branch, with streaming scoped consistency checks.

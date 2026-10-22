@@ -5,9 +5,9 @@
 | 插件 | 作用 |
 |---|---|
 | `analysis-hooks-sandbox` 1.1.2 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |
-| `analysis-memory` | 结构化记忆、目标地图 v1、`dsh_handoff` 材料交接，以及独立的只读有限协作 |
+| `analysis-memory` | 结构化记忆、目标地图 v1、可选参考导航与工作区方法库 v1、`dsh_handoff` 材料交接，以及独立的只读有限协作 |
 | `analysis-control` | 按宿主导入策略控制 HTTP(S) 预算、速率、origin 与 vault 引用 |
-| `analysis-orchestration` 0.8.0 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
+| `analysis-orchestration` 0.8.1 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
 
 要求 Linux 原生文件系统上的独立状态目录（不要放到 WSL `/mnt/` 盘）。验收宿主为 DSH 0.1.5-rc.3、Node.js 24.21.0，需原生 SQLite 和持续型子代理接口。
 
@@ -51,7 +51,7 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state
     - id: analysis-orchestration
-      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.8.0
+      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-orchestration/index.mjs?revision=0.8.1
       config:
         enabled: true
         stateRoot: /ABSOLUTE/DSH_HOME/analysis-state
@@ -85,3 +85,5 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
 目标地图是主会话的可选引用索引，不改变记忆 0.2 记录契约。首次启用附加 `mem_map_entries`/`mem_map_history` 表及 `mem_meta` 版本键；不重写既有记录。升级需维护重启加载代码，回退可保留附加表。使用与边界见[目标地图契约](../skills/analysis-orchestration/references/target-map.md)。
 
 0.8.0 的长任务更新附加 orch_results、orch_packets、orch_packet_reads、orch_issue_sets、orch_issues、orch_issue_snapshots、orch_issue_snapshot_items 表与查询索引；analysis-v1 更新为 1.0.9。旧任务和子会话不重建；新式工作摘要、结果及事项快照的旧代码回退限制见[长任务说明](../skills/analysis-orchestration/references/long-tasks.md)。
+
+0.8.1 允许专职编排使用可选 `dsh_knowledge`，未扩展 Solver 工具或执行权限。方法库 v1 仅追加 mem_method_entries / mem_method_revisions 与索引；原候选 schema 0.2、任务内记忆和授权不变。目录先收录 12 个专题，未收录技能仍可用；同 canonical 工作区显式发布的脱敏方法可跨任务检索。没有每题查库、命中后必须采用或自动写 skill 的规则。详见[契约](../skills/analysis-memory/references/knowledge-library.md)。

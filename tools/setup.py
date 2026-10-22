@@ -78,7 +78,7 @@ def overlay(home):
                     'configPath': str(home / 'hooks/hooks.json'), 'selfTest': False}},
         {'id': 'analysis-memory', 'name': module('analysis-memory'),
          'config': {'enabled': True, 'stateRoot': str(home / 'analysis-state')}},
-        {'id': 'analysis-orchestration', 'name': module('analysis-orchestration', '0.8.0'),
+        {'id': 'analysis-orchestration', 'name': module('analysis-orchestration', '0.8.1'),
          'config': {'enabled': True, 'stateRoot': str(home / 'analysis-state'), 'maxParallel': 3}}
     ]}])
 
