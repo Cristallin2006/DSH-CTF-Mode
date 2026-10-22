@@ -9,7 +9,7 @@
     gk.runinp("/path/input.txt")
 
 设计动机：一次性 gdb 脚本的 rd/hx/log/断点类样板在每个脚本里重复——
-第二个手写 gdb 脚本起必须 import 本库，禁止再抄样板（re-dynamic §2）。
+按当前实验需要复用本库，也可使用独立脚本；本库的寄存器/ucontext 布局主要面向 x86。
 所有函数对失效内存读容错（返回 None），调用方决定怎么处理。
 """
 import gdb
@@ -145,10 +145,14 @@ class Force(B):
     """命中后写内存/寄存器再放行：Force("0x..", mem={addr: b"\\x00"*16}, regs={"rax": 1})。"""
     def __init__(self, loc, mem=None, regs=None, **kw):
         def _apply():
+            failures = []
             for a, d in (mem or {}).items():
-                wr(a, d)
+                if not wr(a, d):
+                    failures.append("memory write failed at %#x" % a)
             for r, v in (regs or {}).items():
                 setreg(r, v)
+            if failures:
+                raise RuntimeError("; ".join(failures))
             return "forced"
         super().__init__(loc, fn=_apply, **kw)
 

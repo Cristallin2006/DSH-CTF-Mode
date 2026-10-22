@@ -28,3 +28,7 @@ Existing options and successful output keys remain. Base64 still defaults to sta
 诊断失败现在返回 JSON，不再输出强制重读/禁止求逆的文字；依赖旧错误文案的外部调用者需改为解析 `ok/status` 和退出码。仓库核查未发现解析旧文案的程序调用者，文档调用已同步。原有 0/1/2 退出用途保留，3 仅用于显式未知契约。
 
 `check-result` preserves raw bytes in `result_hex`; invalid UTF-8 is not replaced to satisfy a text regex. Terminal LF/CRLF is now kept for checks by default. If the caller intentionally validates line content without its terminator, pass `--strip-final-newline`. `--require-printable` remains opt-in; existing `--allow-binary` override is preserved. Passing local format checks does not establish target acceptance or a complete inverse model.
+
+## Dynamic tool regressions
+
+`python tests/dynamic-tools.py` checks executable-header/ABI rejection, call-frame layout, UTF-8 argument separation, Qiling worker stop classification with a test double, Frida failure/cleanup/hit semantics, fresh/partial dump provenance, and offline CLI descriptions. Windows additionally runs a known Python child through the native suspended-process/capture helper. This is not a real Qiling/Frida/GDB integration or an agent solve-rate measurement.

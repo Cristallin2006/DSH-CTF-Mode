@@ -119,7 +119,15 @@ def run(document,timeout_ms,z3):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--timeout-ms',type=int,default=5000)
+    parser.add_argument('--describe',action='store_true')
     args=parser.parse_args()
+    if args.describe:
+        print(json.dumps({'tool':'local-bv-check','contract_version':1,'input':'JSON on stdin',
+                          'width':'1..64','variables':'1..16','dependency':'z3-solver',
+                          'interventions':[],'target_accepted':None,
+                          'scope':'declared finite bit-vector model only; no binary loading, memory, flags, floats or target execution',
+                          'result':'ok means result reported; status may be unknown or inconsistent_assumptions'}))
+        return 0
     if not 1<=args.timeout_ms<=60000:parser.error('timeout must be 1..60000 milliseconds')
     try:
         import z3

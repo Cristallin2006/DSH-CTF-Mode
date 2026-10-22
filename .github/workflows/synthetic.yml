@@ -18,6 +18,7 @@ jobs:
       - run: python3 tools/setup.py --mode full --home /tmp/dsh-ci-preview
       - run: python3 tests/recovery.py
       - run: python3 tests/knowledge-contracts.py
+      - run: python3 tests/dynamic-tools.py
       - run: python3 tests/knowledge.py
       - run: node tests/knowledge-package.mjs
       - run: python3 examples/recovery/run.py

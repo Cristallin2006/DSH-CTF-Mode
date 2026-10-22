@@ -15,6 +15,8 @@ description: 观察程序基线、验证假设，使用 GDB、Frida、Qiling、�
 
 基线/正负例判据见 references/oracle-health.md。`scripts/program_oracle.py` 固定哈希、命令和实际输出；未知正例时仅做启动诊断。`scripts/oracle.py` 是 Qiling 函数调用入口，参数/初始化/地址换算见 references/function-oracle.md，ABI、libc 与 rootfs 不匹配时回到实际进程核验。
 
+oracle、Frida 时间 hook、layer_dump 和 local_bv_check 可用 `--describe` 查询契约，不运行目标。前三者可按需 `--check`；检查范围随工具不同，不把依赖检查当作运行成功。执行结果按状态、停止原因、实际观察和干预解释；细节见 references/tools.md。
+
 ## 选择实验
 
 数据恢复模型与实际输出不一致时，核对位宽、读数、ABI 和初始状态，再按差异选断点、trace 或局部模型；不强制某个调试器。静态数据与未知变换的入口见 ghidra-static 的 references/data-driven-recovery.md。
