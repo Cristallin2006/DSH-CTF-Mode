@@ -18,6 +18,10 @@
 
 **TSecBench v1 本地模式实测（2026-10-18）：综合得分 96.94，获得点数 22300，答对 Flag 71/74。** 详见[本地模式跑分记录](#本地模式跑分记录)。
 
+## Windows 用户态分析（实验性，2026-10-23）
+
+新增跨平台 PE 静态分诊与按需 Windows 专题；原生调试适配器使用 Windows x64 Python 记录自建 x64/WOW64 进程的异常、寄存器、模块、栈字节和进程策略。静态兼容标志不等于运行时启用，栈快照不等于完整调用栈；没有固定后端顺序、自动策略变更或新增 Solver 权限。见 [Windows 入口](skills/pwn-exploit/references/windows-pwn.md)及[调试契约](skills/re-dynamic/references/windows-debug-channel.md)。位于 main，未包含在既有 v0.7.0 下载包，无新增跑分。
+
 ## 知识召回与项目方法记忆（实验性，2026-10-22）
 
 可选 `dsh_knowledge` 提供中英文专题导航、匹配理由、适用前提与反例；经显式脱敏复核的方法卡可在同一工作区跨任务复用。查询和采用均由代理判断，不增加必查步骤；来源变化保留需复核状态，不自动改写 skill，也不扩大 Solver 权限。详见[使用与边界](skills/analysis-memory/references/knowledge-library.md)。本次更新位于 main，既有 v0.7.0 Preview 下载包不包含；没有新增跑分。

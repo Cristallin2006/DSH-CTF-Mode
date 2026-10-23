@@ -71,3 +71,9 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 ## 六、发布副本中的知识增量
 
 2026-10-23 从用户提供的 DSH-CTF-Skill 发布副本整合渗透链、Next.js/RSC 与未知协议分析材料，并校准其适用条件和负结果解释。field_infer.py / stream_reassemble.py 基于该副本的统计与重组思路修订，增加共享 pcap 解析、覆盖说明与资源边界。没有将副本中的旧运行层、固定策略或旧工具覆盖到当前实现；这些知识归纳不构成当前目标漏洞或新跑分成绩的证据。
+
+## 七、Windows 用户态补强的来源与边界
+
+PE 结构和原生调试适配器按 [Microsoft PE 格式](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)、[Debugging events](https://learn.microsoft.com/en-us/windows/win32/debug/debugging-events)、[CONTEXT](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-context) 与 [进程缓解查询](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocessmitigationpolicy) 独立实现；没有打包 SDK 头文件、调试器或微软示例程序。
+
+用户原设计把 [eip-public/security-skills](https://github.com/eip-public/security-skills)（MIT）和 [SnailSploit/Claude-Red](https://github.com/SnailSploit/Claude-Red)（MIT）列为 Windows 方法组织的调研来源。本次保留此调研出处，不声称移植其代码、完整提示词或 CVE 工作流；部分技能页未成功取得，未沿用其无法核验的现代缓解默认值和通用绕过断言。专题中的 [rp++](https://github.com/0vercl0k/rp) 只是可选工具指路，不随本仓库分发。旧 Windows 判例仍保留其原出处并标注适用条件。

@@ -4,6 +4,7 @@
 
 | 脚本 | 用途线索 |
 |---|---|
+| `scripts/windows_debug.py` | 原生 Windows x64 Python 调试自建 x64/WOW64 进程；寄存器/栈快照/模块/异常与只读策略查询，不 attach 或修改策略。 |
 | `scripts/frida_time_hook.py` | 覆写指定时间 API；自检与目标命中分开，不覆盖全部随机源。 |
 | `scripts/gdbkit.py` | gdbkit.py - gdb python 插桩公共库（re-dynamic）。 |
 | `scripts/layer_dump.py` | layer_dump.py — 分层运行时解密样本的「gdb 断点 dump → objdump → strings」一条龙。 |

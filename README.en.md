@@ -20,6 +20,10 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Windows user-mode analysis (experimental, 2026-10-23)
+
+Cross-platform PE metadata triage and optional Windows references now connect to a native Windows x64 Python observer for explicitly launched x64/WOW64 children. It records exceptions, registers, modules, raw stack bytes and process policies. Static declarations are not runtime enforcement; stack bytes are not an unwound call stack. No fixed backend order, automatic policy changes or extra Solver permissions. See the [overview](skills/pwn-exploit/references/windows-pwn.md) and [debugging contract](skills/re-dynamic/references/windows-debug-channel.md) (Chinese). On main, not in the existing v0.7.0 archive; no new benchmark claim.
+
 ## Optional knowledge discovery and project methods (experimental, 2026-10-22)
 
 `dsh_knowledge` offers bilingual reference navigation with matching reasons, prerequisites and counterexamples. Explicitly reviewed, redacted method cards can be reused across tasks in the same workspace. Lookup and adoption are optional; changed sources require rechecking. No automatic skill edits or additional Solver permissions. See the [contract (Chinese)](skills/analysis-memory/references/knowledge-library.md). Available on main, not in the existing v0.7.0 Preview archive; no new benchmark claim.

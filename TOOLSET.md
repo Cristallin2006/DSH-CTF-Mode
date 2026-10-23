@@ -23,6 +23,8 @@
 | z3-solver | SMT 约束求解 | 约束求解/矩阵题;符号执行辅助 |
 | angr | 符号执行/自动探路 | `simgr.explore` 探路、可达性验证;⚠ 会把 z3 钉在 4.13 |
 | checksec.py | PE/ELF 保护机制(NX/Canary/ASLR) | 判型补充;Windows 控制台需 `PYTHONUTF8=1` |
+| 本仓库 pe_triage.py | PE32/PE32+ 声明和 Load Config 的静态证据 | stdlib；Windows/WSL 可用，不将静态标志等同运行策略 |
+| 本仓库 windows_debug.py | Windows 原生异常、寄存器、模块、栈快照和进程策略 | Windows x64 的 64 位 Python；自建 x64/WOW64 进程，不依赖 cdb、不 attach、不改缓解；不是完整展开调用栈 |
 | rust-demangler | Rust `_ZN` 符号还原(纯 wheel) | 无 cargo 环境时替代 rustfilt |
 | speakeasy-emulator | Windows 用户态仿真 | 壳/恶意样本快速行为预览 |
 | ghidriff | Ghidra headless 二进制 diff | 版本比对(ghidra-rpc 已内置 version-track,此为补充) |

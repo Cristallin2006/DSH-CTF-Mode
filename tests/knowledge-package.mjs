@@ -8,6 +8,7 @@ import {createRequire} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {referencePolicy,readMaterial} from '../plugins/analysis-orchestration/reference-policy.mjs';
+import {expandWork} from './native-client.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const skillRoot=process.env.DSH_KNOWLEDGE_SKILL_ROOT??root+'/skills';
@@ -84,7 +85,7 @@ if(!process.argv.includes('--native')){
     ctx=await boot('knowledge',fixture+'/cordis.yml',patches,undefined,pathToFileURL(native+'/').href);ctx.llm.registerAdapter(['knowledge-local'],new Local());
     ctx.on('tools/execute',(exec,next)=>{if(exec.name==='skill')skillCalls++;return next();});
     handle=await ctx.agents.create({sessionId:'knowledge-'+randomUUID(),meta:{cwd:workspace},agentOptions:{provider:'knowledge-local',model:'local'}});await handle.agent.whenIdle();
-    const call=async(name,args)=>{const v=await ctx.tools.execute({name,callId:randomUUID(),agent:handle.agent,arguments:args,signal:new AbortController().signal});assert(!v.isError,JSON.stringify(v));return JSON.parse(v.content.filter(b=>b.type==='text').map(b=>b.text).join(''));};
+    const call=async(name,args)=>{const v=await ctx.tools.execute({name,callId:randomUUID(),agent:handle.agent,arguments:args,signal:new AbortController().signal});assert(!v.isError,JSON.stringify(v));return expandWork(call,args.task,JSON.parse(v.content.filter(b=>b.type==='text').map(b=>b.text).join('')));};
     const task=(await call('analysis_session',{action:'init',options:{goal:'Verify real professional material delivery only'}})).result.id;
     await call('dsh_memory_write',{action:'open',task});const orch=(action,options={})=>call('dsh_orchestration',{action,task,options});await orch('enable');
     const wait=async(id,rev=1)=>{for(let i=0;i<300;i++){const w=await orch('result',{work:id,view:'detail'});if(w.state==='failed')throw localError??Error(JSON.stringify(w));if(w.state==='returned'&&w.result_revision>=rev)return w;await new Promise(r=>setTimeout(r,20));}throw localError??Error('Fixture did not settle');};

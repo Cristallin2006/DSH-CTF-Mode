@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Windows user-mode evidence and native observation, 2026-10-23
+
+- Standard-library PE32/PE32+ static triage: bounded metadata reads, version-sized Load Config, CLI-header hints and CET compatibility from the extended debug directory. Separate file declarations, unknown runtime policy and undetermined exploitability. Existing pwn_triage CLI routes PE to it; ELF behavior stays compatible.
+- Optional Windows mitigation, heap/object, ABI/ROP and debugging references. Existing historical examples retain scope boundaries. No fixed backend order or automatic brute-force, policy, Page Heap or persistent debugger configuration.
+- Native Windows x64 Python debug API observer for explicitly launched x64/WOW64 children: current exception contexts, raw stack snapshots, module bases, byte-preserving I/O, process-policy snapshots, caller-controlled experiment budgets and cleanup of only its own child. No attach, elevation, injection, symbols download or claim of full stack unwinding. Read-only PID policy query is separate.
+- Authored malformed/controlled PE tests plus explicitly requested Windows-native fixture checks; Linux CI runs offline cases. Native material tests check full selected references, on-demand visibility and unchanged Solver permissions. Large acceptance receipts use the existing work_document fallback without weakening assertions.
+- This update is on main, not in the existing v0.7.0 Preview archive. No external model/target calls or new benchmark claim.
+
 ## Unreleased — Optional knowledge library v1 / orchestration 0.8.1, 2026-10-22
 
 - Bilingual, transparent lexical navigation for an initial 12 maintained specialist references. Original native skill visibility and local providers apply; exact Unicode pages retain hashes and snapshot checks. Unlisted skills remain discoverable.
