@@ -26,6 +26,7 @@ description: 对 pcap/pcapng 做协议重组、取证、隐信道与解密分析
 
 | 文件 | 何时读 |
 |---|---|
+| `references/protocol-reversing.md` | 未知协议、字段边界、重复键冲突、pcap 与二进制互证 |
 | `references/pcap-triage.md` | pcap 修头/pcapfix、`--export-objects` 文件提取、流重组、明文凭据与 NTLMv2、strings 碰运气 |
 | `references/tunnels.md` | DNS（dnscat2/尾部字节/TXT/oracle）、ICMP、TCP flags、时序隐信道配方 + 通用元数据直方图方法论 + pcap+二进制复合题载体判定 tells |
 | `references/usb-hid.md` | USB 键盘 8 字节报告、鼠标/数位板画图还原、LED Morse、蓝牙 RFCOMM 重组 |

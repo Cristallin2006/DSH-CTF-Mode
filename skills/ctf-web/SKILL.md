@@ -41,6 +41,8 @@ JS 沙箱的 HTTP/cookie/输入输出归这里，宿主对象访问与能力隔�
 | 原型链污染 / Node HTTP 链；语言隔离交 misc | `node-and-prototype.md` |
 | 智能合约 / Web3 | `web3.md` |
 | 按 banner/header/依赖版本匹配已知 CVE | `cves.md` |
+| Next.js、RSC、Server Action 或 Flight 解析 | `references/nextjs-rsc.md` |
+| 跨主机凭据、跳板、权限边界或分段产物 | 按需选 `ctf-attack-chain` |
 | 不知道打什么 / 要多阶段链参考 | `field-notes.md`(长案例集) |
 | 写 HTTP 发包/fuzz 脚本 | `python-requests.md` + `scripts/async_fuzz.py` |
 

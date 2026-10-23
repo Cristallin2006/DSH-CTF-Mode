@@ -67,3 +67,7 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 协作推理与受限记忆设计参考 [SapperLens](https://github.com/inwpu/SapperLens) 及用户提供的 [sapper-v2 复盘文章](https://mp.weixin.qq.com/s/SmEpDPNMWKXqEw0JseTDOg) 中不同角度复核、共享记忆与错误前提传播的分析。实现基于 DSH 现有记忆与原生子会话独立编写，未复制该项目代码、提示词或题目答案；本说明不推定公开可读材料具有可再发布授权。
 
 2026-10-21 目标地图的共享结构视图设计另参考 SapperLens 公开 Commander 提示词的事实图/工作面板思路。SapperLens 是独立分析，本文不声称已验证 sapper-v2 官方实现，也未完整读取上述文章。本仓库采用版本引用索引、原证据失效检查和主会话授权边界，未复制提示词或平台规则。
+
+## 六、发布副本中的知识增量
+
+2026-10-23 从用户提供的 DSH-CTF-Skill 发布副本整合渗透链、Next.js/RSC 与未知协议分析材料，并校准其适用条件和负结果解释。field_infer.py / stream_reassemble.py 基于该副本的统计与重组思路修订，增加共享 pcap 解析、覆盖说明与资源边界。没有将副本中的旧运行层、固定策略或旧工具覆盖到当前实现；这些知识归纳不构成当前目标漏洞或新跑分成绩的证据。

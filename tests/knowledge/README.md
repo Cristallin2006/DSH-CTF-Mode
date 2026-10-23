@@ -32,3 +32,7 @@ Existing options and successful output keys remain. Base64 still defaults to sta
 ## Dynamic tool regressions
 
 `python tests/dynamic-tools.py` checks executable-header/ABI rejection, call-frame layout, UTF-8 argument separation, Qiling worker stop classification with a test double, Frida failure/cleanup/hit semantics, fresh/partial dump provenance, and offline CLI descriptions. Windows additionally runs a known Python child through the native suspended-process/capture helper. This is not a real Qiling/Frida/GDB integration or an agent solve-rate measurement.
+
+## Protocol tool regressions
+
+`python tests/protocol-tools.py` runs generated classic-pcap fixtures through the parser and CLI, checking directed-flow separation, VLAN/padding boundaries, truncation/fragment reporting, sequence wrap, first-captured overlap policy, gaps, span bounds and input preservation. These checks do not establish a real unknown protocol or hidden-channel solution. New cards remain optional references, not current-target facts.

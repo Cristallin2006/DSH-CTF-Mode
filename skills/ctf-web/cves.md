@@ -1,3 +1,5 @@
+> 本文件保留历史漏洞与案例线索，版本范围、解析顺序和部署条件需结合目标及官方公告核验。Next.js/RSC 的指纹、观察与负结果边界见 [专项卡](references/nextjs-rsc.md)；这里的示例不代表当前目标已满足利用前提。
+
 # CTF Web - CVEs & Browser Vulnerabilities
 
 Specific CVEs and vulnerability patterns. For Node.js CVEs (flatnest, Happy-DOM), see [node-and-prototype.md](node-and-prototype.md). For JWT algorithm confusion, see [auth-and-access.md](auth-and-access.md).

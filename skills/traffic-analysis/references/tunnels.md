@@ -92,3 +92,7 @@ python "$TA/timing_decode.py" cap.pcap --proto icmp --mode interval --threshold 
   （补一个尾部包重跑），再考虑在开头补 0 —— 二者都会「差 1 bit」，但成因相反。
   实测：32 bit 的 `TICK` 用 32 个包只解出 31 bit（`TIC`），补一个尾包后 32/32 正确。
 - bit → 8bit MSB-first → ASCII；不可打印就 `--invert` 翻极性
+
+## 多层材料互证
+
+短记录和大块流同时出现时，可将前者作为密钥/参数候选，对后者按重组字节检查格式和变换；两侧也可能互不相关。两份等长数据按可打印性合并会产生歧义，需保留多候选并用结构或独立校验验证。各层记录 hash、长度与参数，完整边界见 [未知协议互证](protocol-reversing.md)。
