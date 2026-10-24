@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Relay sessions and read-only observations, 2026-10-24
+
+- Optional layered-framing/session and process-observation references. Extend existing ABI, negative-evidence, method publication and heap-state guidance without a six-stage playbook or per-call solving gate.
+- Named example16-LE codec with consistent injected Direct/Tunnel interfaces, exact boundaries/remainders, shared per-layer sequence state and explicit caller reconciliation. No connection, automatic retry, counter rollback or secret publication; previous uncertain outcomes stay recorded.
+- Read-only Linux worker snapshots use explicit PID/root scope, exact tokens, process/image identity and PT_LOAD/maps correlation. No latest-worker selection, debugger attach, signals or descendant resource takeover.
+- Saved-output receipts preserve multiple candidates and byte locators; caller expectations, echoes, execution status and repeated content stay separate from unknown program/platform acceptance. No exploit command execution or fixed cross-instance flag equality.
+- Authored in-memory/native-worker tests and deterministic material delivery; no real models, challenge binaries or external target calls. Main only, with no new benchmark claim or change to existing v0.7.0 archives.
+
 ## Unreleased — Local multi-stage evidence, 2026-10-24
 
 - Optional SQLite extension, seccomp and multi-stage local-analysis cards; extend existing decompiler guidance without universal solving checklists. Distinguish circular consistency from independent evidence, API objects from integers, and socket I/O from pipes.

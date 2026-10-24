@@ -4,6 +4,8 @@
 
 | 脚本 | 用途线索 |
 |---|---|
+| `scripts/worker_snapshot.py` | Linux 明确 PID/根进程的只读身份、socket inode 与 ELF load-bias 观察；不选最新 PID、不 attach/kill。 |
+| `scripts/observation_receipt.py` | 整理已保存输出的候选及来源；不执行命令、无默认 flag 格式或接受升级。 |
 | `scripts/windows_debug.py` | 原生 Windows x64 Python 调试自建 x64/WOW64 进程；寄存器/栈快照/模块/异常与只读策略查询，不 attach 或修改策略。 |
 | `scripts/frida_time_hook.py` | 覆写指定时间 API；自检与目标命中分开，不覆盖全部随机源。 |
 | `scripts/gdbkit.py` | gdbkit.py - gdb python 插桩公共库（re-dynamic）。 |

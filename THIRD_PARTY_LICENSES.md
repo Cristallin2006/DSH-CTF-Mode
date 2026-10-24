@@ -81,3 +81,7 @@ PE 结构和原生调试适配器按 [Microsoft PE 格式](https://learn.microso
 ## 八、SQLite/BPF 与本地实验
 
 2026-10-24 方法增量来自用户提供的 justledger 复盘中的契约恢复、I/O 与资源归属经验；未发布原题附件、完整利用脚本、flag、目标端点或私有实例数据。三个新工具独立编写，未直接移植复盘里的脚本。SQLite API 语义依据 [SQLite 官方文档](https://sqlite.org/loadext.html)及 [pointer passing](https://sqlite.org/bindptr.html)，过滤器语义依据 [Linux seccomp](https://www.kernel.org/doc/html/latest/userspace-api/seccomp_filter.html)与 [BPF 结构文档](https://docs.kernel.org/networking/filter.html)；命名空间边界参考 Linux man-pages。不打包 SQLite 头文件/实现、内核代码或第三方题目样本，外部引用不表示获得其其他内容的再发布许可。
+
+## 九、多层协议与进程观察
+
+2026-10-24 增量参考用户提供的 redisrelay 复盘中分帧、调用实参与 worker 归属的经验，三个组件独立编写，未搬运其利用代码、四个工具或题目附件，不发布真实 flag、目标端点、偏移/密钥和私有实例数据。ABI 校准依据 [x86-64 psABI](https://gitlab.com/x86-psABIs/x86-64-ABI/-/raw/master/x86-64-ABI/low-level-sys-info.tex)；映射/进程引用依据 [ELF gABI](https://gabi.xinuos.com/elf/07-pheader.html)及 Linux man-pages；干预边界依据 [GDB Calling](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Calling.html)。引用是语义归纳，不打包规范源码/原题样本，也不推定其他内容的再发布许可。

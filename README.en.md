@@ -22,6 +22,8 @@ This README covers the same overview as the [Chinese version](README.md). Linked
 
 ## Local multi-stage analysis (experimental, 2026-10-24)
 
+Optional [relay session contracts](skills/pwn-exploit/references/relay-session-contracts.md) and [process/result observations](skills/re-dynamic/references/process-observation.md) add offline framing, injected tunnels, read-only worker/load-bias snapshots and saved-output receipts. No automatic connection, cleanup or acceptance inference. Main only; no new benchmark claim.
+
 Main includes optional [SQLite extension](skills/pwn-exploit/references/sqlite-extension.md), [seccomp evidence](skills/pwn-exploit/references/seccomp-evidence.md) and [local multi-stage](skills/pwn-exploit/references/multi-stage-local.md) methods. Static tools never execute samples; the Linux lab supports owned children with configurable private paths. No general resource adapter or mandatory solving gate is enabled. Not in the v0.7.0 archive; no new benchmark claim.
 
 ## Windows user-mode analysis (experimental, 2026-10-23)

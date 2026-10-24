@@ -20,6 +20,8 @@
 
 ## 多阶段本地分析（实验性，2026-10-24）
 
+另有按需[分层协议与连接状态](skills/pwn-exploit/references/relay-session-contracts.md)及[进程/结果观察](skills/re-dynamic/references/process-observation.md)：离线 codec、注入式隧道、只读 worker/load bias 和既有输出回执；不自动连接、清理或把候选判为目标接受。同样仅在 main，未新增跑分。
+
 当前 main 另提供按需 [SQLite 扩展](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp 路径证据](skills/pwn-exploit/references/seccomp-evidence.md)与[多阶段本地实验](skills/pwn-exploit/references/multi-stage-local.md)：静态工具不执行样本；本地实验仅支持 Linux 可配置私有路径的自有进程，未开放通用资源管理或新增解题硬门。此增量未包含在 v0.7.0 下载包，无新增跑分。
 
 ## Windows 用户态分析（实验性，2026-10-23）

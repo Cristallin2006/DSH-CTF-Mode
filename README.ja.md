@@ -22,6 +22,8 @@
 
 ## 多段階ローカル解析（実験的、2026-10-24）
 
+任意の[中継セッション契約](skills/pwn-exploit/references/relay-session-contracts.md)と[プロセス・結果観測](skills/re-dynamic/references/process-observation.md)を追加しました。オフライン分帧、注入式トンネル、読み取り専用 worker/load bias、保存済み出力の回収に限定し、自動接続・終了や候補からの受理推定は行いません。main のみで、新しいスコアの主張はありません。
+
 main に任意で選択する [SQLite 拡張](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp の証拠](skills/pwn-exploit/references/seccomp-evidence.md)、[多段階ローカル実験](skills/pwn-exploit/references/multi-stage-local.md)を追加しました。静的ツールは試料を実行せず、Linux 実験はパスを設定できる自分の子プロセスに限定します。汎用リソース管理や必須の解法手順は追加しません。既存 v0.7.0 配布物には未収録で、新しいスコアの主張はありません。
 
 ## Windows ユーザーモード解析（実験的、2026-10-23）

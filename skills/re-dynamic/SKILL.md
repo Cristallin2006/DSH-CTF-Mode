@@ -38,6 +38,7 @@ GDB 用于断点、内存与控制流；Frida 用于真实进程插桩；Qiling 
 
 | 文件 | 何时读 |
 |---|---|
+| [进程与结果观察](references/process-observation.md) | 同名/fork worker、模块 load bias、现存输出及动态结果的来源/接受边界 |
 | [Windows 调试通道](references/windows-debug-channel.md) | PE 原生异常、寄存器、栈快照、进程缓解查询或后端语义差异 |
 | [符号模型与反例](references/symbolic-model-checks.md) | 局部符号执行、状态初始化、分支/等价性查询与求解结果解释 |
 | `references/js-antidebug.md` | CTF web/misc 遇到混淆 JS / 浏览器反调试时（混淆分类、反调试四件套中和模板、Node vm 沙箱脱 eval 链） |
