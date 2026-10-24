@@ -55,7 +55,7 @@ export class MemoryStore {
   own(actor,task,write=false){
     const base=this.bound(actor,task),owner=this.q('SELECT * FROM mem_owners WHERE task=? AND actor=?',task,actor);
     if(!owner)throw Error('Task unavailable for calling session');
-    if(write&&base.status!=='running')throw Error('Task is not running');return owner;
+    if(write&&base.status!=='running')throw Object.assign(Error('Task is not running'),{code:'MEMORY_TASK_NOT_RUNNING',taskStatus:base.status});return owner;
   }
   open(actor,task,cwd,token){
     this.bound(actor,task);const workspace=fs.realpathSync(cwd);

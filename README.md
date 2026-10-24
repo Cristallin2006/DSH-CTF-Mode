@@ -18,6 +18,10 @@
 
 **TSecBench v1 本地模式实测（2026-10-18）：综合得分 96.94，获得点数 22300，答对 Flag 71/74。** 详见[本地模式跑分记录](#本地模式跑分记录)。
 
+## 多阶段本地分析（实验性，2026-10-24）
+
+当前 main 另提供按需 [SQLite 扩展](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp 路径证据](skills/pwn-exploit/references/seccomp-evidence.md)与[多阶段本地实验](skills/pwn-exploit/references/multi-stage-local.md)：静态工具不执行样本；本地实验仅支持 Linux 可配置私有路径的自有进程，未开放通用资源管理或新增解题硬门。此增量未包含在 v0.7.0 下载包，无新增跑分。
+
 ## Windows 用户态分析（实验性，2026-10-23）
 
 新增跨平台 PE 静态分诊与按需 Windows 专题；原生调试适配器使用 Windows x64 Python 记录自建 x64/WOW64 进程的异常、寄存器、模块、栈字节和进程策略。静态兼容标志不等于运行时启用，栈快照不等于完整调用栈；没有固定后端顺序、自动策略变更或新增 Solver 权限。见 [Windows 入口](skills/pwn-exploit/references/windows-pwn.md)及[调试契约](skills/re-dynamic/references/windows-debug-channel.md)。位于 main，未包含在既有 v0.7.0 下载包，无新增跑分。

@@ -20,6 +20,10 @@ The model chooses how to investigate. The runtime maintains task identity, evide
 
 This README covers the same overview as the [Chinese version](README.md). Linked skills and detailed reference documents are primarily in Chinese.
 
+## Local multi-stage analysis (experimental, 2026-10-24)
+
+Main includes optional [SQLite extension](skills/pwn-exploit/references/sqlite-extension.md), [seccomp evidence](skills/pwn-exploit/references/seccomp-evidence.md) and [local multi-stage](skills/pwn-exploit/references/multi-stage-local.md) methods. Static tools never execute samples; the Linux lab supports owned children with configurable private paths. No general resource adapter or mandatory solving gate is enabled. Not in the v0.7.0 archive; no new benchmark claim.
+
 ## Windows user-mode analysis (experimental, 2026-10-23)
 
 Cross-platform PE metadata triage and optional Windows references now connect to a native Windows x64 Python observer for explicitly launched x64/WOW64 children. It records exceptions, registers, modules, raw stack bytes and process policies. Static declarations are not runtime enforcement; stack bytes are not an unwound call stack. No fixed backend order, automatic policy changes or extra Solver permissions. See the [overview](skills/pwn-exploit/references/windows-pwn.md) and [debugging contract](skills/re-dynamic/references/windows-debug-channel.md) (Chinese). On main, not in the existing v0.7.0 archive; no new benchmark claim.

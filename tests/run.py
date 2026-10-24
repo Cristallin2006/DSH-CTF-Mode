@@ -17,7 +17,7 @@ names = ['contract', 'feedback', 'invariants', 'resolution', 'shutdown', 'skill-
 if '--native' in sys.argv:
     if not env.get('DSH_NATIVE_PACKAGE_ROOT'):
         sys.exit('Set DSH_NATIVE_PACKAGE_ROOT to the installed @deepseek-ai/dsh package')
-    names += ['reload', 'idle-native', 'native', 'skill-delivery', 'reference-delivery', 'collaborative-native', 'target-map-native', 'long-tasks-native', 'knowledge-library-native', 'windows-materials-native']
+    names += ['reload', 'idle-native', 'native', 'skill-delivery', 'reference-delivery', 'collaborative-native', 'target-map-native', 'long-tasks-native', 'knowledge-library-native', 'windows-materials-native', 'local-materials-native']
 for name in names:
     print(f'Running {name}', flush=True)
     result = subprocess.run([node, str(root/'tests'/f'{name}.mjs')], cwd=root, env=env)

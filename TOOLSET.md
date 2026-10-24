@@ -23,6 +23,8 @@
 | z3-solver | SMT 约束求解 | 约束求解/矩阵题;符号执行辅助 |
 | angr | 符号执行/自动探路 | `simgr.explore` 探路、可达性验证;⚠ 会把 z3 钉在 4.13 |
 | checksec.py | PE/ELF 保护机制(NX/Canary/ASLR) | 判型补充;Windows 控制台需 `PYTHONUTF8=1` |
+| 本仓库 seccomp_bpf.py / sqlite_api_map.py | BPF 路径与 SQLite API 表静态证据 | stdlib；明确输入与 ABI，未知不补猜；不安装过滤器或加载待分析库 |
+| 本仓库 local_lab.py | Linux 可配置路径的自有服务实验 | pidfd、独立副本与原始 I/O；不支持固定路径重映射/setuid/network namespace，不扩大 Solver 资源权限 |
 | 本仓库 pe_triage.py | PE32/PE32+ 声明和 Load Config 的静态证据 | stdlib；Windows/WSL 可用，不将静态标志等同运行策略 |
 | 本仓库 windows_debug.py | Windows 原生异常、寄存器、模块、栈快照和进程策略 | Windows x64 的 64 位 Python；自建 x64/WOW64 进程，不依赖 cdb、不 attach、不改缓解；不是完整展开调用栈 |
 | rust-demangler | Rust `_ZN` 符号还原(纯 wheel) | 无 cargo 环境时替代 rustfilt |

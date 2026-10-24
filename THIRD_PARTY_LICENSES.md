@@ -77,3 +77,7 @@ analysis-memory / analysis-session 的结构化记忆与有限协作设计参考
 PE 结构和原生调试适配器按 [Microsoft PE 格式](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)、[Debugging events](https://learn.microsoft.com/en-us/windows/win32/debug/debugging-events)、[CONTEXT](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-context) 与 [进程缓解查询](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocessmitigationpolicy) 独立实现；没有打包 SDK 头文件、调试器或微软示例程序。
 
 用户原设计把 [eip-public/security-skills](https://github.com/eip-public/security-skills)（MIT）和 [SnailSploit/Claude-Red](https://github.com/SnailSploit/Claude-Red)（MIT）列为 Windows 方法组织的调研来源。本次保留此调研出处，不声称移植其代码、完整提示词或 CVE 工作流；部分技能页未成功取得，未沿用其无法核验的现代缓解默认值和通用绕过断言。专题中的 [rp++](https://github.com/0vercl0k/rp) 只是可选工具指路，不随本仓库分发。旧 Windows 判例仍保留其原出处并标注适用条件。
+
+## 八、SQLite/BPF 与本地实验
+
+2026-10-24 方法增量来自用户提供的 justledger 复盘中的契约恢复、I/O 与资源归属经验；未发布原题附件、完整利用脚本、flag、目标端点或私有实例数据。三个新工具独立编写，未直接移植复盘里的脚本。SQLite API 语义依据 [SQLite 官方文档](https://sqlite.org/loadext.html)及 [pointer passing](https://sqlite.org/bindptr.html)，过滤器语义依据 [Linux seccomp](https://www.kernel.org/doc/html/latest/userspace-api/seccomp_filter.html)与 [BPF 结构文档](https://docs.kernel.org/networking/filter.html)；命名空间边界参考 Linux man-pages。不打包 SQLite 头文件/实现、内核代码或第三方题目样本，外部引用不表示获得其其他内容的再发布许可。

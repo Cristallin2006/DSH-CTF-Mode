@@ -20,6 +20,10 @@
 
 この README は[中国語版](README.md)と同じ概要を説明しています。リンク先のスキル本文と詳細資料は主に中国語です。
 
+## 多段階ローカル解析（実験的、2026-10-24）
+
+main に任意で選択する [SQLite 拡張](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp の証拠](skills/pwn-exploit/references/seccomp-evidence.md)、[多段階ローカル実験](skills/pwn-exploit/references/multi-stage-local.md)を追加しました。静的ツールは試料を実行せず、Linux 実験はパスを設定できる自分の子プロセスに限定します。汎用リソース管理や必須の解法手順は追加しません。既存 v0.7.0 配布物には未収録で、新しいスコアの主張はありません。
+
 ## Windows ユーザーモード解析（実験的、2026-10-23）
 
 PE の静的メタデータ解析と任意の Windows 専門資料を追加しました。Windows x64 Python の原生デバッグ API で、明示的に起動した x64/WOW64 子プロセスの例外、レジスタ、モジュール、スタックのバイト列、プロセスポリシーを記録できます。静的宣言は実行時の有効化を証明せず、生のスタックは展開済みコールスタックではありません。固定のバックエンド順序、ポリシーの自動変更、Solver 権限の追加はありません。[入口](skills/pwn-exploit/references/windows-pwn.md)と[調査契約](skills/re-dynamic/references/windows-debug-channel.md)（中国語）を参照してください。main の更新で、既存の v0.7.0 には未収録です。新しい評価結果はありません。

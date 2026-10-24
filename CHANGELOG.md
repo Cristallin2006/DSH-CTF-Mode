@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Local multi-stage evidence, 2026-10-24
+
+- Optional SQLite extension, seccomp and multi-stage local-analysis cards; extend existing decompiler guidance without universal solving checklists. Distinguish circular consistency from independent evidence, API objects from integers, and socket I/O from pipes.
+- Independent stdlib BPF decoder/single-input evaluator and synthetic policy generator; read-only ELF64 LE x86-64 API-table candidates with explicit relocation/layout limits. No filter installation, library loading, fixed challenge offsets or automatic candidate adoption.
+- Linux private-path supervisor: explicit argv, copied fixtures, raw socketpair I/O, owned-listener readiness without probe connections, pidfd cleanup of direct children and receipts. Mount/setuid/network isolation and DSH resource-adapter integration remain unsupported; existing resource preflight stays enforced.
+- Non-running memory writes return structured non-persistence/recovery references without reopening tasks or copying bodies; terminal-state and completion checks stay enforced.
+- Authored parser/lifecycle and deterministic native material checks, with no external model or target calls. Main only; no new benchmark claim or changes to the existing v0.7.0 archive.
+
 ## Unreleased — Windows user-mode evidence and native observation, 2026-10-23
 
 - Standard-library PE32/PE32+ static triage: bounded metadata reads, version-sized Load Config, CLI-header hints and CET compatibility from the extended debug directory. Separate file declarations, unknown runtime policy and undetermined exploitability. Existing pwn_triage CLI routes PE to it; ELF behavior stays compatible.
