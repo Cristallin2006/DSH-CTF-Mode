@@ -10,13 +10,29 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Platform: dsh](https://img.shields.io/badge/platform-dsh-blue)](https://www.npmjs.com/package/@deepseek-ai/dsh)
 
-[快速开始](docs/QUICKSTART.md) · [可运行示例](examples/README.md) · [下载 Preview](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) · [更新记录](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
+[快速开始](docs/QUICKSTART.md) · [Agent 操作手册与提示词](docs/AGENT-OPERATIONS.md) · [可运行示例](examples/README.md) · [下载 Preview](https://github.com/Cristallin2006/DSH-CTF-Skill/releases/tag/v0.7.0) · [更新记录](CHANGELOG.md) · [参与贡献](CONTRIBUTING.md)
 
 **先用一条命令体验：** `python3 examples/recovery/run.py`（仅需 Python 3.10+；Windows 可用 `python`）。这是零模型调用的合成字节恢复示例，另有原生子代理与记忆授权演示。安装可选“仅技能”或“完整编排”，默认只预览，详见[入门指南](docs/QUICKSTART.md)。
 
 模型自主分析并选择路线；运行层维护任务身份、证据引用、资源和生命周期；skill 提供专业方法。简单任务可直接使用专业 skill，复杂且有独立分支的任务可按需启用专职编排。
 
 **TSecBench v1 本地模式实测（2026-10-18）：综合得分 96.94，获得点数 22300，答对 Flag 71/74。** 详见[本地模式跑分记录](#本地模式跑分记录)。
+
+## 如何指挥 agent（CTF 预设，main）
+
+完整的[Agent 操作手册](docs/AGENT-OPERATIONS.md)提供安装启动、单题/题库、途中建议、同一 Solver 续做、约束更新、暂停恢复、结果复核和工具参数示例。CTF 预设在模型调用前交付基础 skill 并核对本会话钩子；默认由 agent 主动选择单兵或编排。该增量尚未包含在 v0.7.0 下载包，真实宿主兼容性需按[CTF 模式说明](docs/CTF-MODE.md)验收。
+
+安装预览：`python3 tools/setup.py --mode full --preset ctf`。应用并初始化状态后，在 Linux/WSL 中使用 `python3 "$DSH_HOME/launch/ctf.py" --profile ctf` 启动；首次新建 profile、模型配置和完整命令见[手册](docs/AGENT-OPERATIONS.md#2-安装启动与确认就绪)。
+
+| 场景 | 可直接发送给主 agent 的提示词 |
+|---|---|
+| 单题 | 请分析 `<附件路径>`，优先使用单兵模式，选择相关 skill，交付复现脚本、证据与验证结果。授权范围是 `<范围>`。 |
+| 题库 | 请使用编排模式处理 `<题库目录>`，按独立目标派 Solver，明确技能与最小工具；同一目标补材料优先原 work 续做，逐项报告状态。 |
+| 途中建议 | 补充建议，继续当前任务：我观察到 `<事实与引用>`，怀疑 `<解释>`，建议做 `<区分实验>`。如果由 Solver 执行，请通过 steer 转交并反馈投递、回执及验证结果；允许凭证据反对。 |
+| 补材料 | 新材料位于 `<路径>`，请找到原 work，通过 followup 继续同一子会话，并复核哪些旧结论需要修订。 |
+| 暂停 | 请暂停当前编排，停止在途工作并确认收尾，保存证据与未决项，报告 cleanup_unknown；不要自动恢复。 |
+
+用户发给主会话的消息不会自动广播给 Solver；建议通常在可用模型步骤接收，不能瞬间中断阻塞命令。投递成功、Solver 回执与实验验证分别核对，详见[途中提建议](docs/AGENT-OPERATIONS.md#6-任务进行中提建议)。
 
 ## 多阶段本地分析（实验性，2026-10-24）
 

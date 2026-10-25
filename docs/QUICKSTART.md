@@ -72,6 +72,8 @@ dsh --profile ctf-preview --patch "$DSH_HOME/launch/ctf-orchestration.patch.json
 
 需要主会话主动选择单兵/编排、并在模型调用前强制交付相关 skill 与验证本会话钩子时，使用 `python3 tools/setup.py --mode full --preset ctf` 预览。应用后用 `python3 "$DSH_HOME/launch/ctf.py" --profile ctf` 启动；首次新建 profile 加 `--from-default-profile web`。完整命令、auto/固定模式和故障边界见 [CTF 模式](CTF-MODE.md)。已有 profile 请先按维护流程合并，避免重复注册桥接。
 
+安装后如何下任务、给 Solver 建议、补材料、暂停恢复与要求结果，见 [Agent 操作手册与提示词](AGENT-OPERATIONS.md)。
+
 ## 升级已有安装
 
 先暂停编排、确认所有子代理和原生后台任务已收尾，再维护升级。安装器会检查默认状态库中的在途/收尾未确认记录并拒绝写入；它无法发现其他状态目录或宿主之外的进程，因此不能代替维护检查。
