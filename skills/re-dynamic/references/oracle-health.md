@@ -1,5 +1,7 @@
 # 原程序 oracle：先证明程序真的运行
 
+结构化状态与模型比较、原始/派生字段和受限实验副本见 [状态指纹差分](state-fingerprint-oracle.md)。原始样本在 Wine 下输出判定只支持该后端/条件，不能补记原生 Windows 验证。空输出可来自缓冲/崩溃但不能单独定因；切 PTY、插入 fflush 或改调用点都需记录干预，不能自动当原始目标接受。
+
 WSL 内 ELF 直接执行（必要时先 `chmod +x`）；PE 用 `wine <exe>`，不要让 WSL 的 Windows 互操作把 PE 转交给 `cmd.exe`。GUI PE 先启动 Xvfb，使用独立 Wine 前缀；每个测试用例重新启动程序。缺 Debug CRT 时先取消 `WINEDEBUG=-all` 读加载错误，再逐题决定补运行库或转静态路线。DLL 转发 stub 改变环境语义，不能默认视为原始程序 oracle。
 
 `scripts/program_oracle.py` 对同一个目标文件做三次独立运行，记录 SHA-256；三次共用顶层 `argv`（`{target}` 代入目标绝对路径），各用例只改变输入。`expect` 检查运行健康，顶层 `success` 是接受判据，必须在正例成立、反例不成立。只看到不同输出不算接受；成功标记若直接出现在提交输入中，会按可能回显拒绝。JSON 例子：

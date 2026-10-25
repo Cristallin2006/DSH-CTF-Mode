@@ -20,6 +20,8 @@
 
 ## 如何指挥 agent（CTF 预设，main）
 
+main 新增按需的[自带运行时检查](skills/pwn-exploit/references/bundled-runtime.md)、精确流 I/O，以及 [mallocng](skills/pwn-exploit/references/mallocng-evidence.md)、[XML](skills/pwn-exploit/references/libxml2-state-lifetime.md)、[nginx 模块](skills/ghidra-static/references/nginx-module-analysis.md)知识。静态计划不运行目标，流工具不自动连接或重放；完整隔离/分配追踪仍单独保留。此增量不在既有 v0.7.0 下载包中，没有新增跑分结论。
+
 完整的[Agent 操作手册](docs/AGENT-OPERATIONS.md)提供安装启动、单题/题库、途中建议、同一 Solver 续做、约束更新、暂停恢复、结果复核和工具参数示例。CTF 预设在模型调用前交付基础 skill 并核对本会话钩子；默认由 agent 主动选择单兵或编排。该增量尚未包含在 v0.7.0 下载包，真实宿主兼容性需按[CTF 模式说明](docs/CTF-MODE.md)验收。
 
 安装预览：`python3 tools/setup.py --mode full --preset ctf`。应用并初始化状态后，在 Linux/WSL 中使用 `python3 "$DSH_HOME/launch/ctf.py" --profile ctf` 启动；首次新建 profile、模型配置和完整命令见[手册](docs/AGENT-OPERATIONS.md#2-安装启动与确认就绪)。

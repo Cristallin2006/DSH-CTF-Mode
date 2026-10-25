@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — Runtime plans, exact streams and lifetime knowledge, 2026-10-25
+
+- Optional loader/libc, mallocng, libxml2 and nginx cards; extend existing protocol, decompiler, worker and memory guidance. No fixed solving sequence, all-call checklist, automatic seed-window expansion or new task limits.
+- Standard-library ELF64-LE x86-64/AArch64 static inventory and explicit argv/environment plans. Missing/ambiguous dependencies remain visible; no target execution, library loading, downloads, original patches or claim of ABI/remote equivalence.
+- Injected exact byte streams and explicit length/opcode layouts. Shared buffers, monotonic whole-operation deadlines, short-frame failures and confirmed/unknown write progress; existing relay defaults stay compatible. No connections, automatic replay or resource takeover.
+- Publish previously installed VM semantics/saved-state comparison and restricted PE64 CALL-copy helpers, with original/derived observation and intervention boundaries. A corrected native CTF test checks the actual skill heading. These tools do not run challenge samples or prove complete equivalence/acceptance.
+- Authored static/local I/O, harmless native environment and full material-delivery checks; no external model or challenge requests. Existing benchmark records and preview archives are unchanged.
+
 ## Unreleased — Relay sessions and read-only observations, 2026-10-24
 
 - Optional layered-framing/session and process-observation references. Extend existing ABI, negative-evidence, method publication and heap-state guidance without a six-stage playbook or per-call solving gate.

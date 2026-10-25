@@ -24,6 +24,8 @@
 | angr | 符号执行/自动探路 | `simgr.explore` 探路、可达性验证;⚠ 会把 z3 钉在 4.13 |
 | checksec.py | PE/ELF 保护机制(NX/Canary/ASLR) | 判型补充;Windows 控制台需 `PYTHONUTF8=1` |
 | 本仓库 relay_codec.py | 离线帧契约与注入式隧道 | 明确层间前缀、共享会话域和未知发送结果；不自动连接或重试 |
+| 本仓库 stream_io.py | 已有流的精确读写和显式长度格式 | 超时/EOF/短帧分别报告，单一缓冲与操作期限；不连接或重放 |
+| 本仓库 bundled_runtime.py | 自带 loader/libc 的静态候选与启动计划 | 标准库 ELF64-LE 读取，不执行/下载；计划不证明 ABI 或目标接受 |
 | 本仓库 worker_snapshot.py / observation_receipt.py | 只读进程与既有结果观察 | Linux 精确进程身份/ELF 映射；离线候选来源整理不升级外部接受 |
 | 本仓库 seccomp_bpf.py / sqlite_api_map.py | BPF 路径与 SQLite API 表静态证据 | stdlib；明确输入与 ABI，未知不补猜；不安装过滤器或加载待分析库 |
 | 本仓库 local_lab.py | Linux 可配置路径的自有服务实验 | pidfd、独立副本与原始 I/O；不支持固定路径重映射/setuid/network namespace，不扩大 Solver 资源权限 |

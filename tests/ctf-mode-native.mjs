@@ -27,7 +27,7 @@ function* emit(block,kind){yield {type:'block-start',index:0,blockType:block.typ
 class Local extends LlmAdapter{
   async *stream(o){
     calls++;const text=o.messages.flatMap(m=>m.content??[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
-    assert(text.includes('[DSH CTF preset '));assert(text.includes('# CTF 模式'));assert(text.includes('# analysis-session'));
+    assert(text.includes('[DSH CTF preset '));assert(text.includes('# CTF 模式'));assert(text.includes('# Analysis Session'));
     const tool=(name,args)=>emit({type:'tool-call',id:randomUUID(),name,arguments:JSON.stringify(args)},'tool-calls');
     if(phase++===0){yield* tool('dsh_ctf',{action:'select',mode:'solo',reason:'One local fixture',skill_plan:{required:[{name:'ctf-fixture',reason:'Synthetic method'}]}});return;}
     assert(text.includes('CTF_SPECIALIST_BODY_671'));assert(text.includes('CTF_REQUIRED_REFERENCE_274'));

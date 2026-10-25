@@ -12,6 +12,10 @@ Linux/pidfd，显式 --pid PID... 或 --root-pid PID；后者只观察该根的�
 
 pidfd 固定进程引用，不证明调用者有清理权。local_lab 目前仅管理本次直接子进程；本观察器不把 fork 后代接管为自有资源，也不改变 resource 预检。实际调试继续使用已有授权工具。
 
+## attach 与跟随 fork 的观察边界
+
+需要 attach/跟随 fork 时，先关联请求/连接与候选，再核对 PID boot/start、exe 与映像；最新 child、argv、pidfile 或共享 socket inode 都不单独证明归属。attach 会暂停/改变时序，不是无干预只读；前后重核身份/mappings，dump 保留地址域、范围、原始字节和不可读/退出/exec 缺口，不自动追指针或重选进程。GDB 默认跟随 parent，follow-fork-mode child、detach-on-fork off 与多 inferiors 的暂停方式不同，按观察命题选择。插件/commands 兼容故障可用 gdb -nx 或 Python Breakpoint.stop 诊断，不是全局禁用 pwndbg 的规则；停调试与停目标分开。依据：[GDB Forks](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Forks.html)。
+
 ## observation_receipt.py：整理既有输出
 
 显式 --plan FILE --out NEW_JSON，不执行命令、不重跑目标、不默认覆盖 FLAG.txt。所有证据在计划目录（或显式 --root）内，保留原字节位置和哈希。计划为 {pattern:"明确 bytes-regex",runs:[{id,instance_id,connection_id,execution_status,exit_code,stdout,stderr?,input?,expected?,acceptance_evidence?:[]}]}；路径为已落盘文件。execution_status=completed/failed/interrupted/unknown，exit_code 可为 null。

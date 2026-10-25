@@ -38,6 +38,7 @@ GDB 用于断点、内存与控制流；Frida 用于真实进程插桩；Qiling 
 
 | 文件 | 何时读 |
 |---|---|
+| [状态指纹差分](references/state-fingerprint-oracle.md) | 已有结构化报告与模型逐字段核对，或需要受限 CALL 副本实验及证据边界 |
 | [进程与结果观察](references/process-observation.md) | 同名/fork worker、模块 load bias、现存输出及动态结果的来源/接受边界 |
 | [Windows 调试通道](references/windows-debug-channel.md) | PE 原生异常、寄存器、栈快照、进程缓解查询或后端语义差异 |
 | [符号模型与反例](references/symbolic-model-checks.md) | 局部符号执行、状态初始化、分支/等价性查询与求解结果解释 |
