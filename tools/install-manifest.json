@@ -1,5 +1,6 @@
 [
   "dsh-hooks/analysis_hook.py",
+  "plugins/analysis-hooks-sandbox/hook-readiness.mjs",
   "plugins/analysis-hooks-sandbox/index.mjs",
   "plugins/analysis-hooks-sandbox/native-jobs.mjs",
   "plugins/analysis-hooks-sandbox/session-contract.mjs",
@@ -27,6 +28,8 @@
   "plugins/analysis-orchestration/resolution.mjs",
   "plugins/analysis-orchestration/store.mjs",
   "plugins/analysis-orchestration/views.mjs",
+  "plugins/ctf-mode/core.mjs",
+  "plugins/ctf-mode/index.mjs",
   "runtime/analysis-v1/guarded_run.py",
   "runtime/analysis-v1/hook.py",
   "runtime/analysis-v1/legacy_ledger.py",
@@ -107,6 +110,7 @@
   "skills/ctf-misc/quick-reference.md",
   "skills/ctf-misc/references/platform-decisions.md",
   "skills/ctf-misc/rf-sdr.md",
+  "skills/ctf-mode/SKILL.md",
   "skills/ctf-web/SKILL.md",
   "skills/ctf-web/auth-and-access-2.md",
   "skills/ctf-web/auth-and-access.md",
@@ -368,5 +372,6 @@
   "skills/vuln-audit/SKILL.md",
   "skills/vuln-audit/references/fuzzing-harness-evidence.md",
   "skills/vuln-audit/references/patch-diff.md",
-  "skills/vuln-audit/references/vuln-patterns.md"
+  "skills/vuln-audit/references/vuln-patterns.md",
+  "tools/ctf.py"
 ]

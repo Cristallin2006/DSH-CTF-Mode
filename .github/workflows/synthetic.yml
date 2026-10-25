@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: '24'
       - run: python3 tests/setup.py
+      - run: python3 tests/ctf-preset.py
       - run: python3 tools/setup.py --mode full --home /tmp/dsh-ci-preview
       - run: python3 tests/recovery.py
       - run: python3 tests/knowledge-contracts.py

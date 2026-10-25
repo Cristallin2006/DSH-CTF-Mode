@@ -68,6 +68,10 @@ dsh --profile ctf-preview --patch "$DSH_HOME/launch/ctf-orchestration.patch.json
 
 补丁不包含 `analysis-control` 请求控制策略，不提供全局 HTTP 计费或配额拦截；需要该策略时参考[插件文档](../plugins/README.md)，它与可执行 Solver 的兼容边界保持不变。专业工具如 Ghidra/JDK 仍需自行安装，见 [TOOLSET.md](../TOOLSET.md)。
 
+## 可选 CTF 启动预设
+
+需要主会话主动选择单兵/编排、并在模型调用前强制交付相关 skill 与验证本会话钩子时，使用 `python3 tools/setup.py --mode full --preset ctf` 预览。应用后用 `python3 "$DSH_HOME/launch/ctf.py" --profile ctf` 启动；首次新建 profile 加 `--from-default-profile web`。完整命令、auto/固定模式和故障边界见 [CTF 模式](CTF-MODE.md)。已有 profile 请先按维护流程合并，避免重复注册桥接。
+
 ## 升级已有安装
 
 先暂停编排、确认所有子代理和原生后台任务已收尾，再维护升级。安装器会检查默认状态库中的在途/收尾未确认记录并拒绝写入；它无法发现其他状态目录或宿主之外的进程，因此不能代替维护检查。

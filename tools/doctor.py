@@ -40,7 +40,7 @@ def native_package():
     return None
 
 
-def inspect(mode, home):
+def inspect(mode, home, preset=None):
     checks = [{'name': 'python', 'ok': sys.version_info >= (3, 10), 'required': True,
                'detail': platform.python_version()}]
     def add(name, ok, detail, required=True):
@@ -61,6 +61,11 @@ def inspect(mode, home):
             add('validated_host_version', False, 'Validated on DSH 0.1.5-rc.3; validate other versions before use', required=False)
         for rel in ['runtime/analysis-v1/session.py', 'hooks/hooks.json', 'plugins/analysis-memory/broker.mjs', 'plugins/analysis-orchestration/index.mjs', 'launch/ctf-orchestration.patch.json']:
             add('installed:' + rel, (home / rel).is_file(), 'Present' if (home / rel).is_file() else 'Run setup.py --mode full --apply after checking its preview')
+    if preset == 'ctf':
+        add('ctf_requires_full', mode == 'full', 'CTF preset uses the full runtime')
+        for rel in ['skills/ctf-mode/SKILL.md', 'plugins/ctf-mode/index.mjs', 'plugins/ctf-mode/core.mjs',
+                    'plugins/analysis-hooks-sandbox/hook-readiness.mjs', 'launch/ctf-mode.patch.json', 'launch/ctf.py']:
+            add('installed:' + rel, (home / rel).is_file(), 'CTF file presence only; startup/current hook and material delivery are checked by the live host')
     add('model_configuration', True, 'Not inspected. Normal interactive solving needs your own model configuration; synthetic examples do not.', required=False)
     add('specialist_tools', True, 'Ghidra/JDK and other specialist backends are optional and not validated by this doctor.', required=False)
     return {'ok': all(c['ok'] for c in checks if c['required']), 'mode': mode, 'home': str(home),
@@ -71,9 +76,10 @@ def inspect(mode, home):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=['skills', 'full'], default='skills')
+    parser.add_argument('--preset', choices=['ctf'])
     parser.add_argument('--home', default=os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
     args = parser.parse_args()
-    value = inspect(args.mode, Path(args.home).expanduser().absolute())
+    value = inspect(args.mode, Path(args.home).expanduser().absolute(), args.preset)
     print(json.dumps(value, ensure_ascii=False, indent=2))
     return 0 if value['ok'] else 2
 

@@ -69,30 +69,34 @@ def hooks_config(home):
     return encoded(cfg)
 
 
-def overlay(home):
+def overlay(home, ctf_mode=None):
     def module(name, revision=None):
         return (home / 'plugins' / name / 'index.mjs').as_uri() + ('?revision=' + revision if revision else '')
-    return encoded([{'insert': [
-        {'id': 'dsh-ctf-state-adapter', 'name': module('analysis-hooks-sandbox', '1.1.2'),
+    rows = [
+        {'id': 'dsh-ctf-state-adapter', 'name': module('analysis-hooks-sandbox', '1.1.3'),
          'config': {'dshHome': str(home), 'pluginRoot': str(home / 'hooks'),
                     'configPath': str(home / 'hooks/hooks.json'), 'selfTest': False}},
         {'id': 'analysis-memory', 'name': module('analysis-memory'),
          'config': {'enabled': True, 'stateRoot': str(home / 'analysis-state')}},
         {'id': 'analysis-orchestration', 'name': module('analysis-orchestration', '0.8.1'),
          'config': {'enabled': True, 'stateRoot': str(home / 'analysis-state'), 'maxParallel': 3}}
-    ]}])
+    ]
+    if ctf_mode is not None:
+        rows.append({'id': 'ctf-mode', 'name': module('ctf-mode', '1.0.0'),
+                     'config': {'enabled': True, 'mode': ctf_mode}})
+    return encoded([{'insert': rows}])
 
 
-def plan(home, mode):
+def plan(home, mode, preset=None, ctf_mode='auto'):
     folders = ['skills']
     if mode == 'full':
-        folders += ['runtime/analysis-v1', 'plugins/analysis-hooks-sandbox', 'plugins/analysis-memory', 'plugins/analysis-orchestration', 'dsh-hooks']
+        folders += ['runtime/analysis-v1', 'plugins/analysis-hooks-sandbox', 'plugins/analysis-memory', 'plugins/analysis-orchestration', 'plugins/ctf-mode', 'dsh-hooks']
     result = {}
     manifest = json.loads((ROOT / 'tools/install-manifest.json').read_text(encoding='utf-8'))
     if not isinstance(manifest, list) or not all(isinstance(rel, str) for rel in manifest):
         raise ValueError('Invalid public install manifest')
     for rel in manifest:
-        if not any(rel.startswith(folder + '/') for folder in folders):
+        if not any(rel.startswith(folder + '/') for folder in folders) and not (preset == 'ctf' and rel == 'tools/ctf.py'):
             continue
         relative = Path(rel)
         if relative.is_absolute() or '..' in relative.parts:
@@ -113,6 +117,15 @@ def plan(home, mode):
         result['hooks/analysis_hook.py'] = result.pop('dsh-hooks/analysis_hook.py')
         result['hooks/hooks.json'] = hooks_config(home)
         result['launch/ctf-orchestration.patch.json'] = overlay(home)
+        if preset == 'ctf':
+            for required in ('skills/ctf-mode/SKILL.md', 'plugins/ctf-mode/index.mjs',
+                             'plugins/ctf-mode/core.mjs', 'plugins/analysis-hooks-sandbox/hook-readiness.mjs'):
+                if required not in result:
+                    raise ValueError('CTF preset source missing from manifest: ' + required)
+            result['launch/ctf-mode.patch.json'] = overlay(home, ctf_mode)
+            if 'tools/ctf.py' not in result:
+                raise ValueError('CTF launcher source missing from manifest')
+            result['launch/ctf.py'] = result.pop('tools/ctf.py')
     return {rel: data for rel, data in result.items()
             if not destination(home, rel).exists() or destination(home, rel).read_bytes() != data}
 
@@ -155,6 +168,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=['skills', 'full'], default='skills')
     parser.add_argument('--home', default=os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
+    parser.add_argument('--preset', choices=['ctf'], help='opt-in main-session skill and hook admission; requires full')
+    parser.add_argument('--ctf-mode', choices=['auto', 'solo', 'orchestrated'], default='auto')
     parser.add_argument('--apply', action='store_true', help='default is a genuinely read-only preview')
     parser.add_argument('--replace', action='store_true', help='back up and replace conflicting files; never deletes unlisted files')
     args = parser.parse_args()
@@ -166,10 +181,13 @@ def main():
         raise ValueError('DSH_HOME and the checkout must not overlap')
     if args.mode == 'full' and (sys.platform != 'linux' or home.is_relative_to(Path('/mnt'))):
         raise ValueError('Full mode requires native Linux storage (not /mnt). Use WSL and a Linux DSH_HOME.')
-    changes = plan(home, args.mode)
+    if args.preset and args.mode != 'full':
+        raise ValueError('CTF preset requires --mode full')
+    changes = plan(home, args.mode, args.preset, args.ctf_mode)
     conflicts = [rel for rel in changes if destination(home, rel).exists() and rel != 'hooks/hooks.json']
     value = {'ok': True, 'mode': args.mode, 'applied': False, 'home': str(home), 'changed_files': len(changes),
              'conflicting_files': conflicts, 'profile_edits': False, 'service_restart': False, 'model_calls': 0,
+             'preset': args.preset, 'ctf_mode': args.ctf_mode if args.preset else None,
              'note': 'Run tools/doctor.py --mode ' + args.mode + '; full mode requires a fresh profile or a manual merge if these plugins are already registered.'}
     if not args.apply:
         print(json.dumps(value, ensure_ascii=False, indent=2))
@@ -219,6 +237,9 @@ def main():
     if args.mode == 'full':
         value['overlay'] = str(home / 'launch/ctf-orchestration.patch.json')
         value['next'] = 'Use the generated --patch with a NEW ctf-preview profile; see docs/QUICKSTART.md. Configure your own model separately.'
+    if args.preset == 'ctf':
+        value['ctf_overlay'] = str(home / 'launch/ctf-mode.patch.json')
+        value['next'] = 'Launch python3 '+str(home / 'launch/ctf.py')+' --profile ctf --from-default-profile web (new profile only); configure your model normally.'
     print(json.dumps(value, ensure_ascii=False, indent=2))
     return 0
 

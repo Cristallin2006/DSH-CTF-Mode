@@ -5,6 +5,7 @@ import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {actions as ACTIONS,parameters,validate,contract} from './session-contract.mjs?revision=1.1.2';
 import {NativeJobs} from './native-jobs.mjs?revision=1.1.1';
+import {HookReadiness} from './hook-readiness.mjs?revision=1.1.3';
 
 const nativeRoot=process.env.DSH_NATIVE_PACKAGE_ROOT || '/opt/node24/lib/node_modules/@deepseek-ai/dsh';
 const nativeRequire=createRequire(path.join(nativeRoot,'package.json'));
@@ -29,8 +30,8 @@ export async function apply(ctx,config){
   ctx.effect(()=>async()=>{clearInterval(timer);await lifecycle.close();},'analysis: drain owned native jobs');
   const expected=`python3 "${pluginRoot}/analysis_hook.py"`;
   const prefix=`DSH_HOME=${quote(root)} DSH_ANALYSIS_STATE=${quote(state)} `;
-  const agents=new Map();
-  const health={status:'starting',version:'1.1.2',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
+  const agents=new Map(),hookReadiness=new HookReadiness();
+  const health={status:'starting',version:'1.1.3',pid:process.pid,state,startedAt:new Date().toISOString(),calls:0,failures:0,lastFailure:null,lastSuccess:null,points:{}};
   const healthDir=path.join(state,'health');
   fs.mkdirSync(healthDir,{recursive:true,mode:0o700});
   const healthFile=path.join(healthDir,`host-${process.pid}.json`);
@@ -68,6 +69,7 @@ export async function apply(ctx,config){
           try{payload=JSON.parse(spec.stdin || '{}')}catch{}
           let result;
           try{result=await shell.run(spec)}catch(error){
+            hookReadiness.record(payload,false,error);
             const point=String(payload.hook_event_name || 'unknown');
             health.calls++;health.failures++;health.status='degraded';
             (health.points[point] ||= {ok:0,failed:0}).failed++;
@@ -78,6 +80,7 @@ export async function apply(ctx,config){
           }
           try{parsed=JSON.parse(result.stdout.text)}catch{}
           const ok=result.exitCode===0 && parsed.analysisHealth?.status==='ok';
+          hookReadiness.record(payload,ok,parsed.analysisHealth?.error || result.stderr.text.slice(-1200));
           health.calls++;
           const point=String(payload.hook_event_name || 'unknown');
           const count=health.points[point] ||= {ok:0,failed:0};
@@ -111,7 +114,7 @@ export async function apply(ctx,config){
     }
   });
   const agentWarnings=new Map();
-  ctx.on('agent/disposed',({agent})=>{const id=agent?.session?.header?.id;agents.delete(id);agentWarnings.delete(id)});
+  ctx.on('agent/disposed',({agent})=>{const id=agent?.session?.header?.id;agents.delete(id);agentWarnings.delete(id);hookReadiness.forget(id)});
   // Reuse the installed bridge, including pairing, lifecycle and cancellation.
   bridge.apply(proxy,{configPath:config.configPath,pluginRoot});
 
@@ -164,7 +167,7 @@ export async function apply(ctx,config){
         catch{readiness.request_control={available:false,status:'unavailable',coverage:'unknown; no protection claim'};}
         parsed.readiness=readiness;
       }
-      return JSON.stringify(action==='health'?{...parsed,hook:health}:parsed);
+      return JSON.stringify(action==='health'?{...parsed,hook:health,hook_session:hookReadiness.get(owner)}:parsed);
     }
   };
   ctx.effect(()=>ctx.tools.register(tool),'analysis: constrained state tool');

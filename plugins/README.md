@@ -4,7 +4,8 @@
 
 | 插件 | 作用 |
 |---|---|
-| `analysis-hooks-sandbox` 1.1.2 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |
+| `analysis-hooks-sandbox` 1.1.3 | 钩子与 `analysis_session` 的专用状态目录能力，原生后台任务归属 |
+| `ctf-mode` 1.0.0 | 可选主会话 CTF skill/钩子准入与显式单兵/编排选择，见 [预设](../docs/CTF-MODE.md) |
 | `analysis-memory` | 结构化记忆、目标地图 v1、可选参考导航与工作区方法库 v1、`dsh_handoff` 材料交接，以及独立的只读有限协作 |
 | `analysis-control` | 按宿主导入策略控制 HTTP(S) 预算、速率、origin 与 vault 引用 |
 | `analysis-orchestration` 0.8.1 | 实验性专职编排、持续型 Solver、重要前提失效、受限记忆召回与第二角度复核 |
@@ -39,7 +40,7 @@ DSH_HOME="$DSH_HOME" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
 ```yaml
 - insert:
     - id: hooks-claude-code
-      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-hooks-sandbox/index.mjs?revision=1.1.2
+      name: file:///ABSOLUTE/DSH_HOME/plugins/analysis-hooks-sandbox/index.mjs?revision=1.1.3
       config:
         dshHome: /ABSOLUTE/DSH_HOME
         pluginRoot: /ABSOLUTE/DSH_HOME/hooks
