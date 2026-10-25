@@ -2,6 +2,8 @@
 
 本仓库包含衍生自以下上游项目的内容,感谢原作者。致谢不替代实际收录文件所适用的许可、版权和其他通知,也不把不同来源统一改标为本仓库的许可。
 
+原生 CTF 卡片与 Web 控件基于 [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness)（本机相关原生包标注 MIT）的 Agent presets、Cordis、Typert Remote 与界面扩展接口独立适配。安装时从用户本机 Standard 组合复制并生成自定义预设，保留其组装内容；公开仓库不附带官方组合或编译产物，不将 DSH 原生功能宣称为本项目独有能力。
+
 ## 一、直接收录 / 衍生内容
 
 ### README 黑客版鲸鱼娘封面

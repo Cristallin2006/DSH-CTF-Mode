@@ -12,20 +12,20 @@ const coordination=new Set(['dsh_ctf','skill','analysis_session','dsh_memory_rea
 const dispatch=/^(?:subagent|agent_|task$|workflow$|ralph$)/i;
 
 export class CtfMode {
-  constructor(ctx,{renderSkillContent,health,orchestrationHealth,mode='auto',policy=referencePolicy,read=readMaterial}={}){
+  constructor(ctx,{renderSkillContent,health,orchestrationHealth,mode='auto',defaultPreference=()=>mode,policy=referencePolicy,read=readMaterial}={}){
     if(!['auto','solo','orchestrated'].includes(mode))throw Error('CTF mode must be auto, solo or orchestrated');
     this.ctx=ctx;this.render=renderSkillContent;this.health=health;this.orchestrationHealth=orchestrationHealth;
-    this.mode=mode;this.policy=policy;this.read=read;this.sessions=new Map();
+    this.mode=mode;this.defaultPreference=defaultPreference;this.policy=policy;this.read=read;this.sessions=new Map();
   }
   state(agent){
     if(!isMain(agent))throw Error('CTF route selection belongs to the main session');
     const id=agent.session.header.id;
-    if(!this.sessions.has(id))this.sessions.set(id,{mode:null,reason:null,plan:null,revision:0,verified:null,prepared:null,error:null});
+    if(!this.sessions.has(id))this.sessions.set(id,{mode:null,preference:this.mode==='auto'?this.defaultPreference():this.mode,reason:null,plan:null,revision:0,verified:null,prepared:null,error:null});
     return this.sessions.get(id);
   }
   status(agent){
     const s=this.state(agent);
-    return {preset:'ctf',preference:this.mode,mode:s.mode??'selection_required',reason:s.reason,revision:s.revision,
+    return {preset:'ctf',preference:s.preference,locked_mode:this.mode==='auto'?null:this.mode,mode:s.mode??'selection_required',reason:s.reason,revision:s.revision,
       delivery:s.prepared?.state??'pending',verified:s.verified===s.revision&&s.prepared?.state==='delivered',
       skills:s.prepared?.materials??[],error:s.error,authority:'delivery is not understanding, tool permission or target acceptance'};
   }
@@ -36,7 +36,8 @@ export class CtfMode {
     return health;
   }
   async select(agent,input){
-    const s=this.state(agent);
+    const s=this.state(agent),revision=s.revision;
+    if(input?.expected_revision!==undefined&&input.expected_revision!==revision)throw Error('CTF state changed; refresh and retry');
     if(!input||!['solo','orchestrated'].includes(input.mode)||typeof input.reason!=='string'||!input.reason.trim()||input.reason.length>2000)
       throw Error('Select solo or orchestrated and give a task-specific reason');
     if(this.mode!=='auto'&&input.mode!==this.mode)throw Error('This profile pins '+this.mode+'; use an auto preset or change the explicit profile preference');
@@ -45,7 +46,17 @@ export class CtfMode {
     const orchestration=await this.orchestrationHealth(agent);
     if(input.mode==='orchestrated'&&orchestration?.ok!==true)throw Error('Orchestration runtime unavailable; no dispatch was started');
     if(input.mode==='solo'&&orchestration?.current_run)throw Error('Disable/drain the existing orchestration run before selecting solo; CTF mode never cancels work implicitly');
+    if(s.revision!==revision)throw Error('CTF state changed; refresh and retry');
+    input.signal?.throwIfAborted();
     s.mode=input.mode;s.reason=input.reason;s.plan=plan;s.revision++;s.verified=null;s.prepared=null;s.error=null;
+    return this.status(agent);
+  }
+  setPreference(agent,preference,expectedRevision){
+    const s=this.state(agent);
+    if(!['auto','solo','orchestrated'].includes(preference))throw Error('Invalid CTF preference');
+    if(s.revision!==expectedRevision)throw Error('CTF state changed; refresh and retry');
+    if(this.mode!=='auto'&&preference!==this.mode)throw Error('This profile pins '+this.mode);
+    s.preference=preference;s.revision++;s.verified=null;s.prepared=null;
     return this.status(agent);
   }
   async assemble(assembly,context){
@@ -80,7 +91,7 @@ export class CtfMode {
         materials.push(metadata);
         if(bytes>65536)throw Error('CTF material bundle exceeds 64 KiB; narrow specialist selection');
       }
-      const routing={preference:this.mode,mode:s.mode??'selection_required',reason:s.reason,revision,none_reason:s.plan?.none_reason??null};
+      const routing={preference:s.preference,locked_mode:this.mode==='auto'?null:this.mode,mode:s.mode??'selection_required',reason:s.reason,revision,none_reason:s.plan?.none_reason??null};
       const bundle='[DSH CTF preset '+hash(JSON.stringify({routing,materials}))+']\n'+
         'Host-loaded complete skill bodies and required references; current user constraints and native tool permissions remain authoritative. Delivery does not prove understanding. Select a route with dsh_ctf before execution.\n'+JSON.stringify(routing)+'\n\n'+blocks.join('\n\n');
       if(Buffer.byteLength(bundle)>65536)throw Error('CTF material bundle exceeds 64 KiB');

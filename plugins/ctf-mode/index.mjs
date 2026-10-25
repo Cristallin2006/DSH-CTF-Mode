@@ -12,8 +12,10 @@ export async function apply(ctx,config={}){
     const tool=ctx.tools.get(name,agent);if(!tool)throw Error('CTF runtime prerequisite missing: '+name);
     return JSON.parse(await tool.execute({action:'health'},{agent}));
   };
-  const mode=new CtfMode(ctx,{renderSkillContent,mode:config.mode??'auto',
+  const ui=ctx.get('ctfUi');
+  const mode=new CtfMode(ctx,{renderSkillContent,mode:config.mode??'auto',defaultPreference:()=>ui?.controller.defaultPreference()??'auto',
     health:agent=>invoke('analysis_session',agent),orchestrationHealth:agent=>invoke('dsh_orchestration',agent)});
+  if(ui&&config.presetId)ctx.effect(()=>ui.controller.register(mode,config.presetId),'ctf-mode: UI route controller');
   ctx.on('system-prompt/assemble',async(_assembly,context,next)=>mode.assemble(await next(),context));
   ctx.on('agent/pre-step',async({agent},next)=>mode.verify(agent,await next()));
   ctx.on('tools/pre-execute',async(exec,next)=>(await mode.preTool(exec))??next());

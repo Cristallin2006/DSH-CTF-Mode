@@ -1,5 +1,7 @@
 # DSH-CTF-Skill
 
+Web の「設定 → Agent プリセット → カスタム」に **CTF モード**を追加できます。セッションの希望と実際の単独・協調モードを分けて表示し、待機中に安全に切り替えます。`python3 tools/setup.py --mode full --native-preset ctf` で確認し、[導入手順](docs/CTF-MODE.md)に従ってホスト/UI プラグインを統合してください。既存のセッションと既定プリセットは変更しません。
+
 [简体中文](README.md) | [English](README.en.md) | **日本語**
 
 ![ハッカー版クジラ娘：DSH-CTF-Skill のフルスタック CTF チーム](assets/social-preview.png)

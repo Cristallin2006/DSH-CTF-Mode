@@ -1,0 +1,8 @@
+{
+  "name": "dsh-ctf-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "exports": {".": "./index.mjs", "./client": "./client.js"},
+  "dsh": {"client": {"platform": "web", "inject": ["@deepseek-ai/dsh-api-remotes", "@deepseek-ai/dsh-client-ui-conversation", "@deepseek-ai/dsh-client-ui-settings"], "external": [], "immediately": false}}
+}

@@ -18,7 +18,7 @@ setup=load('ctf_setup','tools/setup.py');launch=load('ctf_launch','tools/ctf.py'
 
 class PresetTests(unittest.TestCase):
     def setUp(self):
-        self.temp=tempfile.TemporaryDirectory(prefix='ctf-preset-',dir=ROOT)
+        self.temp=tempfile.TemporaryDirectory(prefix='ctf-preset-',dir=ROOT if sys.platform=='win32' else None)
         self.addCleanup(self.temp.cleanup);base=Path(self.temp.name);self.home=base/'home';self.source=base/'source'
         files={'skills/ctf-mode/SKILL.md':b'# CTF fixture','skills/analysis-session/SKILL.md':b'# State fixture',
                'plugins/ctf-mode/index.mjs':b'// fixture','plugins/ctf-mode/core.mjs':b'// fixture',
@@ -26,7 +26,8 @@ class PresetTests(unittest.TestCase):
                'plugins/analysis-hooks-sandbox/hook-readiness.mjs':b'// fixture',
                'plugins/analysis-memory/index.mjs':b'// fixture','plugins/analysis-orchestration/index.mjs':b'// fixture',
                'runtime/analysis-v1/session.py':b'# fixture','dsh-hooks/analysis_hook.py':b'# fixture',
-               'tools/ctf.py':(ROOT/'tools/ctf.py').read_bytes()}
+               'tools/ctf.py':(ROOT/'tools/ctf.py').read_bytes(),
+               **{'plugins/ctf-ui/'+name:b'// fixture' for name in ('package.json','index.mjs','controller.mjs','client.js')}}
         for rel,data in files.items():
             p=self.source/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
         (self.source/'tools/install-manifest.json').write_text(json.dumps(list(files)),encoding='utf-8')
@@ -62,5 +63,17 @@ class PresetTests(unittest.TestCase):
         rows=json.loads(setup.overlay(self.home,'solo'))[0]['insert']
         self.assertEqual(rows[-1]['config']['mode'],'solo')
         with self.assertRaisesRegex(ValueError,'Install'):launch.command(self.home,'ctf')
+    def test_native_card_and_separate_host_overlay(self):
+        native=self.source/'native';standard=native/'node_modules/@deepseek-ai/dsh-agent-presets/presets/standard/agent.cordis.yml'
+        standard.parent.mkdir(parents=True);standard.write_text('- id: fixture\n  name: cordis:group\n  config: []\n')
+        changes=setup.plan(self.home,'full',native=True,native_root=native)
+        self.assertIn('.agent-presets/ctf/agent.cordis.yml',changes)
+        self.assertIn('CTF 模式',changes['.agent-presets/ctf/preset.yml'].decode())
+        rows=json.loads(changes['launch/ctf-native.patch.json'])[0]['insert']
+        self.assertIn('dsh-ctf-ui',{r['id'] for r in rows});self.assertNotIn('ctf-mode',{r['id'] for r in rows})
+        self.assertNotIn('launch/ctf-mode.patch.json',changes)
+        self.assertEqual(standard.read_text(),'- id: fixture\n  name: cordis:group\n  config: []\n')
+        with self.assertRaisesRegex(ValueError,'requires --mode full'):self.call('--native-preset','ctf')
+        with patch.object(sys,'platform','linux'),self.assertRaisesRegex(ValueError,'not both'):self.call('--mode','full','--native-preset','ctf','--preset','ctf')
 
 if __name__=='__main__':unittest.main()

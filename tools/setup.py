@@ -10,7 +10,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import sqlite3
+import subprocess
 import sys
 import tempfile
 from uuid import uuid4
@@ -69,7 +71,7 @@ def hooks_config(home):
     return encoded(cfg)
 
 
-def overlay(home, ctf_mode=None):
+def overlay(home, ctf_mode=None, native_ui=False):
     def module(name, revision=None):
         return (home / 'plugins' / name / 'index.mjs').as_uri() + ('?revision=' + revision if revision else '')
     rows = [
@@ -84,13 +86,38 @@ def overlay(home, ctf_mode=None):
     if ctf_mode is not None:
         rows.append({'id': 'ctf-mode', 'name': module('ctf-mode', '1.0.0'),
                      'config': {'enabled': True, 'mode': ctf_mode}})
+    if native_ui:
+        rows.append({'id': 'dsh-ctf-ui', 'name': module('ctf-ui')})
     return encoded([{'insert': rows}])
 
 
-def plan(home, mode, preset=None, ctf_mode='auto'):
+def native_preset(home, native_root=None):
+    """Duplicate this machine's Standard composition; do not vendor the upstream preset."""
+    root = Path(native_root or os.environ.get('DSH_NATIVE_PACKAGE_ROOT', '/opt/node24/lib/node_modules/@deepseek-ai/dsh'))
+    standard = root / 'node_modules/@deepseek-ai/dsh-agent-presets/presets/standard/agent.cordis.yml'
+    if not standard.is_file() or standard.stat().st_size > 262144:
+        raise ValueError('Native Standard preset unavailable; set DSH_NATIVE_PACKAGE_ROOT to the installed DSH package')
+    body = standard.read_text(encoding='utf-8')
+    # Local custom directories do not necessarily share the harness's Node lookup
+    # base. Resolve every upstream package through the installed harness first.
+    pattern = re.compile(r"(?m)^(\s*name:\s*)['\"](@deepseek-ai/[^'\"\n]+)['\"]\s*$")
+    names = sorted({match.group(2) for match in pattern.finditer(body)})
+    resolver = "const {createRequire}=require('node:module'),{pathToFileURL}=require('node:url'),fs=require('node:fs');const r=createRequire(process.argv[1]);process.stdout.write(JSON.stringify(Object.fromEntries(JSON.parse(fs.readFileSync(0,'utf8')).map(n=>[n,pathToFileURL(r.resolve(n)).href]))));"
+    resolved = json.loads(subprocess.run(['node', '-e', resolver, str(root / 'package.json')], input=json.dumps(names), text=True, capture_output=True, check=True).stdout)
+    body = pattern.sub(lambda match: match.group(1) + json.dumps(resolved[match.group(2)]), body)
+    row = {'id': 'ctf-mode', 'name': (home / 'plugins/ctf-mode/index.mjs').as_uri(),
+           'config': {'enabled': True, 'mode': 'auto', 'presetId': 'ctf'}}
+    return {'.agent-presets/ctf/agent.cordis.yml': (body.rstrip() + '\n\n- ' + json.dumps(row, ensure_ascii=False) + '\n').encode(),
+            '.agent-presets/ctf/preset.yml': encoded({'name': 'CTF 模式', 'description': '自动判断、优先单兵或优先编排；按任务加载完整解题知识，显示运行状态。', 'order': 10}),
+            'launch/ctf-native.patch.json': overlay(home, native_ui=True)}
+
+
+def plan(home, mode, preset=None, ctf_mode='auto', native=False, native_root=None):
     folders = ['skills']
     if mode == 'full':
         folders += ['runtime/analysis-v1', 'plugins/analysis-hooks-sandbox', 'plugins/analysis-memory', 'plugins/analysis-orchestration', 'plugins/ctf-mode', 'dsh-hooks']
+        if native:
+            folders.append('plugins/ctf-ui')
     result = {}
     manifest = json.loads((ROOT / 'tools/install-manifest.json').read_text(encoding='utf-8'))
     if not isinstance(manifest, list) or not all(isinstance(rel, str) for rel in manifest):
@@ -117,6 +144,11 @@ def plan(home, mode, preset=None, ctf_mode='auto'):
         result['hooks/analysis_hook.py'] = result.pop('dsh-hooks/analysis_hook.py')
         result['hooks/hooks.json'] = hooks_config(home)
         result['launch/ctf-orchestration.patch.json'] = overlay(home)
+        if native:
+            for required in ('plugins/ctf-ui/package.json', 'plugins/ctf-ui/index.mjs', 'plugins/ctf-ui/client.js', 'plugins/ctf-ui/controller.mjs', 'plugins/ctf-mode/index.mjs'):
+                if required not in result:
+                    raise ValueError('Native CTF preset source missing from manifest: ' + required)
+            result.update(native_preset(home, native_root))
         if preset == 'ctf':
             for required in ('skills/ctf-mode/SKILL.md', 'plugins/ctf-mode/index.mjs',
                              'plugins/ctf-mode/core.mjs', 'plugins/analysis-hooks-sandbox/hook-readiness.mjs'):
@@ -169,6 +201,8 @@ def main():
     parser.add_argument('--mode', choices=['skills', 'full'], default='skills')
     parser.add_argument('--home', default=os.environ.get('DSH_HOME', str(Path.home() / '.dsh')))
     parser.add_argument('--preset', choices=['ctf'], help='opt-in main-session skill and hook admission; requires full')
+    parser.add_argument('--native-preset', choices=['ctf'], help='install a custom native CTF card and separate host/UI overlay; requires full')
+    parser.add_argument('--native-root', help='installed DSH package root, for cloning its native Standard composition')
     parser.add_argument('--ctf-mode', choices=['auto', 'solo', 'orchestrated'], default='auto')
     parser.add_argument('--apply', action='store_true', help='default is a genuinely read-only preview')
     parser.add_argument('--replace', action='store_true', help='back up and replace conflicting files; never deletes unlisted files')
@@ -181,13 +215,18 @@ def main():
         raise ValueError('DSH_HOME and the checkout must not overlap')
     if args.mode == 'full' and (sys.platform != 'linux' or home.is_relative_to(Path('/mnt'))):
         raise ValueError('Full mode requires native Linux storage (not /mnt). Use WSL and a Linux DSH_HOME.')
-    if args.preset and args.mode != 'full':
+    if (args.preset or args.native_preset) and args.mode != 'full':
         raise ValueError('CTF preset requires --mode full')
-    changes = plan(home, args.mode, args.preset, args.ctf_mode)
+    if args.preset and args.native_preset:
+        raise ValueError('Choose the legacy process overlay or the native session preset, not both')
+    if args.native_preset and args.ctf_mode != 'auto':
+        raise ValueError('The native preset uses soft preferences in CTF settings; --ctf-mode pins only the legacy process overlay')
+    changes = plan(home, args.mode, args.preset, args.ctf_mode, bool(args.native_preset), args.native_root)
     conflicts = [rel for rel in changes if destination(home, rel).exists() and rel != 'hooks/hooks.json']
     value = {'ok': True, 'mode': args.mode, 'applied': False, 'home': str(home), 'changed_files': len(changes),
              'conflicting_files': conflicts, 'profile_edits': False, 'service_restart': False, 'model_calls': 0,
              'preset': args.preset, 'ctf_mode': args.ctf_mode if args.preset else None,
+             'native_preset': args.native_preset,
              'note': 'Run tools/doctor.py --mode ' + args.mode + '; full mode requires a fresh profile or a manual merge if these plugins are already registered.'}
     if not args.apply:
         print(json.dumps(value, ensure_ascii=False, indent=2))

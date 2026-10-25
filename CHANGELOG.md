@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Native CTF preset controls, 2026-10-25
+
+- Opt-in native custom CTF card, generated from the installed DSH Standard composition. No vendor patch, copied upstream bundle in this repository, or default-preset replacement.
+- Separate soft per-session/new-session preferences from the actual route and current Hook/material receipts. Session controls use authenticated native Remote calls, strict inputs, idle-maintenance ownership, revision checks and existing orchestration drain guards.
+- Compact reads never resume cold agents; controls do not dispatch or cancel work. Existing specialist plans and explicit legacy route pins remain effective. Runtime route state resets after host restart.
+- Isolated browser interaction and deterministic native tests; no external model/target calls or benchmark claim. Main only, outside the existing v0.7.0 archive.
+
 ## Unreleased — Runtime plans, exact streams and lifetime knowledge, 2026-10-25
 
 - Optional loader/libc, mallocng, libxml2 and nginx cards; extend existing protocol, decompiler, worker and memory guidance. No fixed solving sequence, all-call checklist, automatic seed-window expansion or new task limits.

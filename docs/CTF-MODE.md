@@ -1,6 +1,26 @@
 # CTF 预设：启动交付与主动路由
 
-这是显式选择的 DSH profile 预设。宿主在主会话模型调用前交付 ctf-mode 与 analysis-session 完整正文，并核对本会话实际成功的启动/最近钩子回执。不是仅追加一条“记得加载技能”的提示。
+可按会话选择原生 Agent 预设，也兼容旧的独立 profile 方式。宿主在主会话模型调用前交付 ctf-mode 与 analysis-session 完整正文，并核对本会话实际成功的启动/最近钩子回执。
+
+## Web 原生卡片（main，DSH 0.1.5-rc.3 验收）
+
+```bash
+export DSH_HOME="$HOME/.dsh-ctf"
+export DSH_NATIVE_PACKAGE_ROOT="$(npm root -g)/@deepseek-ai/dsh"
+python3 tools/setup.py --mode full --native-preset ctf
+python3 tools/setup.py --mode full --native-preset ctf --apply
+DSH_ANALYSIS_STATE="$DSH_HOME/analysis-state" python3 "$DSH_HOME/runtime/analysis-v1/session.py" health
+```
+
+安装生成 `.agent-presets/ctf/` 和独立宿主补丁 `launch/ctf-native.patch.json`，不会写现有 profile 或设置默认 Agent。先将该补丁的插件行合并到 Web profile 的 `cordis.patch.yml` 后再运行 `dsh web`。已有状态适配器、记忆和编排插件时只补 `dsh-ctf-ui` 行，沿用原有配置；不要把同一插件注册两次。新版 `dsh web` 不接受父命令的 `--patch/--profile` 参数。
+
+原生卡片位于 **设置 → Agent 预设 → 自定义 → CTF 模式**，也可在新会话的预设菜单选择。现有会话仍保留原预设。旁边的 **CTF 模式** 设置页提供新会话默认偏好；原生卡片自身没有配置扩展槽，因此未替换原生管理页。
+
+会话标题旁 **CTF · 实际模式** 可查看 Hook 与知识材料送达、修改本会话偏好、显式切换单兵/编排。默认偏好仅在一个主会话运行状态首次创建时读取，之后修改不追改已有状态。它与原生 Agent 默认预设是两项独立设置。运行状态目前不跨宿主重启保存；恢复会话会重新读取默认偏好并要求重新选择实际模式、重新校验回执。
+
+“自动判断 / 优先单兵 / 优先编排”是软偏好，实际模式只有单兵、编排或待判断。切换使用原生空闲维护阶段与修订号校验，不打断当前轮、不自动派单或取消任务；编排转单兵仍须先通过原接口收尾、disable。没有选专业技能时，UI 选路不代替 Agent 的任务分析与后续技能声明。
+
+界面读取不恢复冷会话，仅返回精简状态；通过 DSH 自带认证传输与 Typert Remote 调用。浏览器与宿主分别校验输入。全局普通会话和子代理不会获得主会话模式控件。安装器从本机 Standard 预设复制组装并解析本机包路径，不将官方组合源文件或本机绝对路径预置进公开仓库；升级 DSH 后应维护重新生成并验收。旧 `--preset ctf` 是进程级入口，两种方式不要叠加。
 
 操作者的任务模板、途中建议、同一 Solver 续做和暂停恢复示例见 [Agent 操作手册](AGENT-OPERATIONS.md)。
 
