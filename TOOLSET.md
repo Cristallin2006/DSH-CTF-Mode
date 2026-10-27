@@ -19,7 +19,7 @@
 
 | 工具 | 角色 | 选型原因 |
 |---|---|---|
-| frida + frida-tools | 动态插桩/hook | 静态死路时转动态;脱壳失败阶梯的一环 |
+| frida + frida-tools | 动态插桩/hook | 按当前命题选择真实进程插桩，可动态先行；记录探针与干预条件 |
 | z3-solver | SMT 约束求解 | 约束求解/矩阵题;符号执行辅助 |
 | angr | 符号执行/自动探路 | `simgr.explore` 探路、可达性验证;⚠ 会把 z3 钉在 4.13 |
 | checksec.py | PE/ELF 保护机制(NX/Canary/ASLR) | 判型补充;Windows 控制台需 `PYTHONUTF8=1` |
@@ -96,7 +96,7 @@
 
 ## Android(android-re)
 
-jadx(Java 层反编译第一源)、apkanalyzer / adb / aapt2 / apksigner(Android SDK 自带)、androguard(交叉验证)、emulator + x86_64 镜像(无头真机 oracle)。apktool/baksmali 未装——jadx+apkanalyzer 已覆盖主场景(Tier C)。
+jadx、apkanalyzer / adb / aapt2 / apksigner（Android SDK）、androguard，以及按当前样本选择的 emulator/测试设备。apktool/baksmali 等按需发现，反编译结果可与字节码交叉核对；工具是否存在以当前路径和解释器为准。模拟器是独立运行后端，x86_64 行为不自动证明 ARM/真机语义。
 
 ## 已知不装项(选型决策记录)
 

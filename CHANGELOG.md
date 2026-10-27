@@ -1,5 +1,12 @@
 # Changelog
 
+## Experimental branch — Offline RE workbench foundation, 2026-10-27
+
+- Correct residual universal anti-debug/emulation claims and fixed engine ordering; extend existing Android/static/dynamic entries with optional workbench routing. No required solving sequence, new task deadline or extra permissions.
+- Add passive path/venv-metadata discovery, explicit ELF32/64 PT_LOAD/rebase coordinates, immutable saved-file evidence copies and offline verification. Coordinate results retain ambiguity and caller-declared runtime identity; local completeness is separate from stream coverage and target acceptance.
+- Explicit trusted MCP stdio inspection initializes and pages the tool catalog without tool calls. Uses owned temporary processes; Windows cleanup covers the direct child only. No persistent job manager or Android capability claim.
+- Authored offline, owned-host JNI and native material-delivery checks. External Kahlo is separately pinned and built only in an isolated lab; not bundled, installed or automatically registered by this distribution. See docs/RE-WORKBENCH.md for staged scope.
+
 ## Unreleased — Optional BEAM, CRC and saved evidence, 2026-10-27
 
 - Add optional Elixir/BEAM Web, static BEAM/ETF subset, CRC oracle and saved-file chunk references; connect bilingual catalog, installation and selected native material delivery.

@@ -33,6 +33,7 @@
 - **本地 Pwn**：[SQLite 扩展](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp 证据](skills/pwn-exploit/references/seccomp-evidence.md)、[多阶段实验](skills/pwn-exploit/references/multi-stage-local.md)。
 - **运行时与对象寿命**：[自带运行时](skills/pwn-exploit/references/bundled-runtime.md)、[mallocng](skills/pwn-exploit/references/mallocng-evidence.md)、[libxml2](skills/pwn-exploit/references/libxml2-state-lifetime.md)、[nginx 模块](skills/ghidra-static/references/nginx-module-analysis.md)。
 - **Windows**：[用户态分析](skills/pwn-exploit/references/windows-pwn.md)、[原生调试观察](skills/re-dynamic/references/windows-debug-channel.md)。
+- **实验分支工作台**：[离线发现、地址核对、证据封存与 MCP 宿主检查](docs/RE-WORKBENCH.md)，设备控制与静态回写分阶段验收。
 
 这些专题按当前问题选择。所选必需技能与参考卡由宿主全文交付，其他技能仍可发现；详细变更见 [CHANGELOG](CHANGELOG.md)。
 
