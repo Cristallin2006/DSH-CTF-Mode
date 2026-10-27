@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Optional WAF and allowlist diagnostics, 2026-10-27
+
+- Integrate the publish copy's conditional Web reference on distinguishing application authorization, filtering, gateways, Bot challenges and rate limits; compare checkers with final consumers and verify actual business semantics.
+- Connect skill/quick-reference/diagnostic routes, the public install manifest and bilingual knowledge search. The topic stays optional; existing core-only delivery, tool permissions and request controls remain unchanged.
+- Verify installed discovery, exact paged reads and selected Solver material delivery with local synthetic adapters. No live target requests, external model calls or new benchmark claim.
+
 ## Unreleased — Native CTF preset controls, 2026-10-25
 
 - Opt-in native custom CTF card, generated from the installed DSH Standard composition. No vendor patch, copied upstream bundle in this repository, or default-preset replacement.

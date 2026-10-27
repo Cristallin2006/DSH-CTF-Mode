@@ -68,6 +68,7 @@ go install github.com/ffuf/ffuf/v2@latest
 - [cves.md](cves.md) - CVE-driven techniques you can match against challenge banners, headers, dependency leaks, or version strings
 - [field-notes.md](field-notes.md) - Long-form exploit notes: quick references for SQLi, XSS, LFI, JWT, SSTI, SSRF, command injection, XXE, deserialization, race conditions, auth bypass, and multi-stage chains
 - [python-requests.md](python-requests.md) - Python requests toolkit: session scaffold, Burp-Intruder-like fuzzer (sync + ThreadPoolExecutor + httpx async), payload deploy from pat-reference.md wordlists, header/param spray, cookie/JWT, proxy
+- [references/waf-allowlist-differentials.md](references/waf-allowlist-differentials.md) — WAF、过滤器与白名单的单变量对照、最终消费者分析、语义验证与请求成本边界；用于 401/403 或特定输入被拒时，之后仍进入对应漏洞专题
 - [pat-reference.md](pat-reference.md) — PayloadsAllTheThings index: bulk payloads for XSS/SQLi/SSRF/SSTI/LFI/Command Injection/Upload (requires PAT clone, see Prerequisites)
 
 ## When to Pivot

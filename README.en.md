@@ -1,5 +1,7 @@
 # DSH-CTF-Skill
 
+An optional [WAF, filter and allowlist diagnostic reference](skills/ctf-web/references/waf-allowlist-differentials.md) now connects Web routing, knowledge search and installation. It distinguishes blocking layers and verifies final-consumer behavior; it is not automatically loaded for every Web task and adds no fixed request quota or enumeration sequence.
+
 Web users can install a native **CTF mode** card under Settings → Agent presets → Custom. Soft session preferences are separate from the actual solo/coordinator route; idle-only controls retain hook, material-delivery and orchestration-drain checks. Preview with `python3 tools/setup.py --mode full --native-preset ctf`, then merge the host/UI overlay as described in [CTF mode](docs/CTF-MODE.md). Existing sessions and the default Agent preset remain unchanged.
 
 [简体中文](README.md) | **English** | [日本語](README.ja.md)

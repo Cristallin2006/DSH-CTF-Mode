@@ -133,6 +133,7 @@
   "skills/ctf-web/references/login-evidence.md",
   "skills/ctf-web/references/nextjs-rsc.md",
   "skills/ctf-web/references/tools.md",
+  "skills/ctf-web/references/waf-allowlist-differentials.md",
   "skills/ctf-web/scripts/async_fuzz.py",
   "skills/ctf-web/server-side-2.md",
   "skills/ctf-web/server-side-advanced-2.md",

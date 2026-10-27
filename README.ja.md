@@ -1,5 +1,7 @@
 # DSH-CTF-Skill
 
+必要に応じて読む [WAF・フィルター・許可リストの差分診断](skills/ctf-web/references/waf-allowlist-differentials.md)を、Web スキル、知識検索、インストール対象に接続しました。拒否が発生する層と最終処理の動作を検証します。全 Web タスクへの自動読込や固定の試行回数は追加しません。
+
 Web の「設定 → Agent プリセット → カスタム」に **CTF モード**を追加できます。セッションの希望と実際の単独・協調モードを分けて表示し、待機中に安全に切り替えます。`python3 tools/setup.py --mode full --native-preset ctf` で確認し、[導入手順](docs/CTF-MODE.md)に従ってホスト/UI プラグインを統合してください。既存のセッションと既定プリセットは変更しません。
 
 [简体中文](README.md) | [English](README.en.md) | **日本語**

@@ -20,6 +20,8 @@
 
 ## 如何指挥 agent（CTF 预设，main）
 
+新增按需 [WAF、过滤器与白名单差异诊断](skills/ctf-web/references/waf-allowlist-differentials.md)：遇到 401/403、过滤或解析差异时定位检查层，比较最终消费者并核对业务语义。已接入技能入口、知识检索与安装清单；不作为每题必读，不新增请求额度或固定枚举流程。
+
 Web 已支持原生 **CTF 模式**卡片：设置 → Agent 预设 → 自定义。新会话可选自动判断、优先单兵或优先编排；标题旁查看实际模式与就绪状态，空闲时安全切换。安装预览：`python3 tools/setup.py --mode full --native-preset ctf`，需按[原生卡片说明](docs/CTF-MODE.md)合并宿主/UI 插件后使用。默认预设和已有会话不自动更改。
 
 main 新增按需的[自带运行时检查](skills/pwn-exploit/references/bundled-runtime.md)、精确流 I/O，以及 [mallocng](skills/pwn-exploit/references/mallocng-evidence.md)、[XML](skills/pwn-exploit/references/libxml2-state-lifetime.md)、[nginx 模块](skills/ghidra-static/references/nginx-module-analysis.md)知识。静态计划不运行目标，流工具不自动连接或重放；完整隔离/分配追踪仍单独保留。此增量不在既有 v0.7.0 下载包中，没有新增跑分结论。

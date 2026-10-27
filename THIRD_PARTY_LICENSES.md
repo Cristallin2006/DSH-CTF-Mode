@@ -93,3 +93,7 @@ PE 结构和原生调试适配器按 [Microsoft PE 格式](https://learn.microso
 2026-10-25 参考用户 cacheline/xmlbridge/VVMM 复盘中环境污染、精确 I/O、对象寿命、VM 模型与干预实验的经验。新增工具独立实现，未直接收编原题 Tube、启动/清理、GDB、分配 hook 或利用脚本；不发布附件、真实 flag、端点和实例秘密。
 
 方法核对使用 [Linux ld.so](https://man7.org/linux/man-pages/man8/ld.so.8.html)、[ELF gABI](https://gabi.xinuos.com/elf/07-pheader.html)、[musl v1.2.6 源码镜像](https://github.com/ifduyue/musl/tree/v1.2.6/src/malloc/mallocng)、[libxml2 v2.9.14](https://github.com/GNOME/libxml2/tree/v2.9.14)、[nginx release-1.28.0](https://github.com/nginx/nginx/blob/release-1.28.0/src/core/ngx_module.h)、[GDB Forks](https://sourceware.org/gdb/current/onlinedocs/gdb.html/Forks.html)及 Microsoft [PE 格式](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)/[x64 ABI](https://learn.microsoft.com/en-us/cpp/build/x64-calling-convention)。这些是版本化语义与接口来源，不打包其库、规范、SDK 或调试器代码，不推定其他内容的再发布许可。
+
+## 十一、WAF 与白名单差异分析
+
+2026-10-26 从用户提供的 src-hunter-pentest 副本中 `知识库/waf-bypass.md`、`references/403-bypass.md` 和 `references/api-security/scenarios/rest/waf-bypass-techniques.md` 归纳分层诊断、单变量变异与语义复核思路，独立编写 `ctf-web/references/waf-allowlist-differentials.md`。未复制其产品矩阵、批量字典、分布式请求或固定绕过断言，产品行为仍以目标版本与对照实验为准。该本地副本未见许可证文件，因此不推定其许可或作重新授权；来源说明不表示上游背书。
