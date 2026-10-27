@@ -24,6 +24,7 @@ jobs:
       - run: python3 tests/windows-pwn.py
       - run: python3 tests/local-analysis.py
       - run: python3 tests/relay-evidence.py
+      - run: python3 tests/beam-crc-chunks.py
       - run: python3 tests/runtime-stream.py
       - run: python3 tests/runtime-native.py
       - run: python3 tests/vm-evidence.py

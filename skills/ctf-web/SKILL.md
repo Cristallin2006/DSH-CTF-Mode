@@ -30,6 +30,7 @@ JS 沙箱的 HTTP/cookie/输入输出归这里，宿主对象访问与能力隔�
 |---|---|
 | SQL 注入(含盲注生成器、WAF 绕过、二阶) | `sql-injection.md` |
 | WAF / 过滤器 / 白名单 / 401/403 解析差异 | `references/waf-allowlist-differentials.md` |
+| Elixir/Phoenix/Plug、BEAM 制品、ETS 与调试输出 | `references/elixir-beam-web.md`；已保存制品按需交 re-triage，明确 CRC 参数问题交 ctf-crypto |
 | SSTI / SSRF / PHP 特性 / LFI(php://filter) | `server-side.md` |
 | XXE / XML 注入 / 命令注入 / GraphQL | `server-side-2.md` |
 | 上传转 RCE / LaTeX 注入 / 直接代码执行 | `server-side-exec.md`、`server-side-exec-2.md` |

@@ -999,57 +999,28 @@ x = [crt2(x5[i], 5, x13[i], 13) for i in range(len(x5))]
 
 ## Introspective CRC via GF(2) Linear Algebra (Google CTF 2017)
 
-**Pattern:** Find an ASCII string whose CRC-N value equals the string itself (self-referential CRC). Model CRC as a linear function over GF(2) and solve the resulting system.
+For a fixed input length and a fully specified CRC model, the CRC map is generally **affine**, not necessarily linear: `F(x XOR y) = F(x) XOR F(y) XOR F(0)`. The zero baseline has the same byte length. Byte coverage, reflection and output encoding must match the original verifier. See [CRC oracle contracts](references/crc-oracle-contracts.md) for parameter checks and finite-candidate validation.
+
+A raw-bit self-reference can become a GF(2) system when its field-to-input mapping is itself affine. Build each influence column by flipping one actual input bit and XORing the baseline; include the self-reference's output-bit mapping. ASCII hexadecimal encoding and printable constraints are **not automatically linear**. Model those separately, or use a proven affine subset, and replay each candidate against the original byte-level verifier.
 
 ```python
-# CRC is linear over GF(2): CRC(a XOR b) = CRC(a) XOR CRC(b)
-# Goal: find x where CRC(x) = x (as ASCII hex)
-# 1. Compute CRC of all-zeros baseline
-# 2. For each bit position, compute the CRC difference (remainder)
-# 3. Set up GF(2) linear system: CRC(x) XOR x = 0
-# 4. Solve with Gaussian elimination over GF(2)
-from sympy import Matrix
-from sympy.polys.domains import GF as SymGF
+# Sage; A and b must already encode the actual bit mapping and F(0).
+# This is algebraic solving only, not a CRC parameter/key recovery tool.
+from sage.all import GF, Matrix, vector
 
-F = SymGF(2)
-# Build matrix where each column represents flipping one bit
-# Rows represent the CRC output bits XOR input bits
-M = Matrix.zeros(n_bits, n_bits)
-# ... fill with CRC remainders (0/1 entries) ...
-# Solve: use sympy rref or gauss_jordan over GF(2)
-# solution = M.gauss_jordan_solve(target_vector)  # or custom GF(2) elimination
-# Example helper:
-def solve_gf2(M, b):
-    # M: sympy Matrix over GF(2), b: column vector
-    aug = M.row_join(b)
-    rref, pivots = aug.rref(iszerofunc=lambda x: x % 2 == 0, simplify=True)
-    # Extract solution (assumes unique)
-    sol = [int(rref[i, -1] % 2) for i in range(len(pivots))]
-    return sol
-solution = solve_gf2(M, target_vector)
+def solve_affine_bits(rows, rhs):
+    A = Matrix(GF(2), rows)
+    b = vector(GF(2), rhs)
+    if A.nrows() != len(b):
+        raise ValueError("RHS length differs from the equation count")
+    if A.rank() != A.augment(Matrix(GF(2), len(b), 1, list(b))).rank():
+        return None  # inconsistent; do not invent a solution
+    particular = A.solve_right(b)
+    free_directions = A.right_kernel().basis()
+    return particular, free_directions
 ```
 
-<details><summary>Sage fallback (optional)</summary>
-
-```python
-# CRC is linear over GF(2): CRC(a XOR b) = CRC(a) XOR CRC(b)
-# Goal: find x where CRC(x) = x (as ASCII hex)
-# 1. Compute CRC of all-zeros baseline
-# 2. For each bit position, compute the CRC difference (remainder)
-# 3. Set up GF(2) linear system: CRC(x) XOR x = 0
-# 4. Solve with Gaussian elimination over GF(2)
-from sage.all import *
-F = GF(2)
-# Build matrix where each column represents flipping one bit
-# Rows represent the CRC output bits XOR input bits
-M = Matrix(F, n_bits, n_bits)
-# ... fill with CRC remainders ...
-solution = M.solve_right(target_vector)
-```
-
-</details>
-
-**Key insight:** CRC is a linear function over GF(2). The self-referential constraint CRC(x)=x becomes a system of linear equations over GF(2), solvable by Gaussian elimination. The ASCII constraint requires choosing free variables to keep all bytes in the printable range.
+A nonempty kernel means multiple solutions; selecting its free variables still needs the real encoding and acceptance constraints. Ordinary rational-matrix `rref` with a mod-2 zero test does not implement elimination over GF(2). A successful local algebraic check does not establish remote acceptance or recover an unrelated secret key.
 
 **References:** Google CTF 2017
 

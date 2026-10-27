@@ -1,5 +1,7 @@
 # DSH-CTF-Skill
 
+Optional [Elixir/BEAM Web](skills/ctf-web/references/elixir-beam-web.md), [BEAM inventory](skills/re-triage/references/beam-artifacts.md), [CRC contracts](skills/ctf-crypto/references/crc-oracle-contracts.md) and [saved-chunk assembly](skills/re-triage/references/evidence-chunks.md) now connect installation, search and selected Solver delivery. Three offline standard-library tools preserve unknowns, multiple candidates and coverage gaps. Memory validation identifies exact field paths. No new solving gates or benchmark claim.
+
 An optional [WAF, filter and allowlist diagnostic reference](skills/ctf-web/references/waf-allowlist-differentials.md) now connects Web routing, knowledge search and installation. It distinguishes blocking layers and verifies final-consumer behavior; it is not automatically loaded for every Web task and adds no fixed request quota or enumeration sequence.
 
 Web users can install a native **CTF mode** card under Settings → Agent presets → Custom. Soft session preferences are separate from the actual solo/coordinator route; idle-only controls retain hook, material-delivery and orchestration-drain checks. Preview with `python3 tools/setup.py --mode full --native-preset ctf`, then merge the host/UI overlay as described in [CTF mode](docs/CTF-MODE.md). Existing sessions and the default Agent preset remain unchanged.

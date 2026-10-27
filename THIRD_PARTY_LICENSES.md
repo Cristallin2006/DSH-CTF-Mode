@@ -97,3 +97,7 @@ PE 结构和原生调试适配器按 [Microsoft PE 格式](https://learn.microso
 ## 十一、WAF 与白名单差异分析
 
 2026-10-26 从用户提供的 src-hunter-pentest 副本中 `知识库/waf-bypass.md`、`references/403-bypass.md` 和 `references/api-security/scenarios/rest/waf-bypass-techniques.md` 归纳分层诊断、单变量变异与语义复核思路，独立编写 `ctf-web/references/waf-allowlist-differentials.md`。未复制其产品矩阵、批量字典、分布式请求或固定绕过断言，产品行为仍以目标版本与对照实验为准。该本地副本未见许可证文件，因此不推定其许可或作重新授权；来源说明不表示上游背书。
+
+## 十二、BEAM、CRC 与已保存证据
+
+2026-10-27 参考用户 FluxPipe 复盘中的语言栈识别、制品静态分析、CRC 条件和分块取证经验。三个工具独立编写，不携带原题附件、利用脚本、flag、端点或实例密钥。BEAM/IFF 与 ETF 子集以 [Erlang/OTP 27 beam_lib](https://www.erlang.org/docs/27/apps/stdlib/beam_lib.html)、[ETF 格式](https://www.erlang.org/docs/27/apps/erts/erl_ext_dist.html)和 [OTP 27.3.4.4 编译器布局](https://github.com/erlang/otp/blob/OTP-27.3.4.4/lib/compiler/src/beam_asm.erl)为接口依据；数据库协议区分参考 [PostgreSQL 15](https://www.postgresql.org/docs/15/protocol-flow.html)。CRC 参数与公开 check 值参考 [RevEng catalogue](https://reveng.sourceforge.io/crc-catalogue/16.htm)及 [pycrc models](https://pycrc.org/models.html)，算法未移植其实现。引用不表示打包其源码、运行库或获得其他材料再发布许可。

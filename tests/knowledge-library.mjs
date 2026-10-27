@@ -29,6 +29,17 @@ try{
  const en=await run(a,'search',{query:'sign extension',kind:'reference'});assert.equal(en.items[0].id,'reverse-width');assert(en.items[0].matches.some(v=>v.field==='aliases'));assert(en.items[0].failure_boundaries.length);
  const zh=await run(a,'search',{query:'位宽 符号扩展',kind:'reference'});assert.equal(zh.items[0].id,'reverse-width');assert.equal((await run(a,'search',{query:'unlistedzzzzzz'})).total,0);
  for(const query of ['WAF allowlist 403','白名单 过滤器'])assert((await run(a,'search',{query,kind:'reference'})).items.some(v=>v.id==='web-waf-allowlist'));
+ for(const [id,query,skill,ref] of [
+  ['web-elixir-beam','Phoenix Plug Ecto','ctf-web','elixir-beam-web'],
+  ['beam-artifacts','BEAM IFF LitT ETF','re-triage','beam-artifacts'],
+  ['crc-oracle','CRC 等长差分','ctf-crypto','crc-oracle-contracts'],
+  ['evidence-chunks','分块文件 缺口 重叠','re-triage','evidence-chunks']]){
+  assert((await run(a,'search',{query,kind:'reference'})).items.some(v=>v.id===id));
+  let full='',offset=0,snapshot;do{const p=await run(a,'read_reference',{id,offset,max_bytes:2048,...snapshot?{snapshot}:{}});full+=p.text;offset=p.next_offset;snapshot=p.snapshot;}while(offset!==null);
+  assert.equal(full,fs.readFileSync(base+'/skills/'+skill+'/references/'+ref+'.md','utf8'));
+  const hidden=new Map(skills);hidden.delete(skill);assert(!(await run(a,'search',{query},hidden)).items.some(v=>v.id===id));await assert.rejects(run(a,'read_reference',{id},hidden),/unavailable/);
+ }
+ checks.push('BEAM/Web/CRC/chunk topics are optional, searchable, exactly paged and respect native skill visibility');
  const unavailableWeb=new Map(skills);unavailableWeb.delete('ctf-web');assert(!(await run(a,'search',{query:'WAF allowlist'},unavailableWeb)).items.some(v=>v.id==='web-waf-allowlist'));await assert.rejects(run(a,'read_reference',{id:'web-waf-allowlist'},unavailableWeb),/unavailable/);
  let waf='',wafOffset=0,wafSnapshot;do{const p=await run(a,'read_reference',{id:'web-waf-allowlist',offset:wafOffset,max_bytes:2048,...wafSnapshot?{snapshot:wafSnapshot}:{}});waf+=p.text;wafOffset=p.next_offset;wafSnapshot=p.snapshot;}while(wafOffset!==null);assert.equal(waf,fs.readFileSync(base+'/skills/ctf-web/references/waf-allowlist-differentials.md','utf8'));
  assert.equal((await run(a,'search',{query:'seccomp BPF syscall',kind:'reference'})).items[0].id,'seccomp-evidence');

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Optional BEAM, CRC and saved evidence, 2026-10-27
+
+- Add optional Elixir/BEAM Web, static BEAM/ETF subset, CRC oracle and saved-file chunk references; connect bilingual catalog, installation and selected native material delivery.
+- Independently authored offline tools inventory BEAM without execution, check explicit CRC models/finite candidates without online queries, and assemble existing chunks without partial artifacts or overwrites. Bounds are configurable and failures explicit. Unknowns, conflicting evidence and multiple candidates remain visible.
+- Correct the old CRC linearity/GF(2) example. Memory candidate schema 0.2 stays unchanged; validation now identifies missing/type/enum paths without echoing private values or bypassing lifecycle/permission checks.
+- Synthetic malformed/known-vector/native material checks only; no real model, target request, full opcode disassembler, release bootstrap or new benchmark claim. Existing v0.7.0 archives remain unchanged.
+
 ## Unreleased — Optional WAF and allowlist diagnostics, 2026-10-27
 
 - Integrate the publish copy's conditional Web reference on distinguishing application authorization, filtering, gateways, Bot challenges and rate limits; compare checkers with final consumers and verify actual business semantics.

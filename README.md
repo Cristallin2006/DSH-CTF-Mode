@@ -1,5 +1,7 @@
 # DSH-CTF-Skill
 
+新增按需 [Elixir/BEAM Web](skills/ctf-web/references/elixir-beam-web.md)、[BEAM 制品清点](skills/re-triage/references/beam-artifacts.md)、[CRC 契约核对](skills/ctf-crypto/references/crc-oracle-contracts.md)与[已保存分块组装](skills/re-triage/references/evidence-chunks.md)。三个标准库离线工具保留未知项、多解和覆盖缺口；记忆校验提供具体字段路径。已接入安装、检索及材料交付，不新增解题门槛。
+
 **简体中文** | [English](README.en.md) | [日本語](README.ja.md)
 
 ![黑客版大肥鱼：DSH-CTF-Skill 全栈 CTF 团队](assets/social-preview.png)

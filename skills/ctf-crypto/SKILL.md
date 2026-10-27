@@ -26,6 +26,7 @@ SMT、剥离、代数化简、枚举按结构与代价选择，无统一固定�
 
 | 已知条件/症状 | 读 |
 |---|---|
+| CRC、checksum oracle、等长差分或参数候选 | `references/crc-oracle-contracts.md`；输入覆盖、实例身份、仿射基线与多解分别核对 |
 | [攻击条件与校验](references/crypto-attack-contracts.md) | 调用密码攻击实现或测试向量时：前提、接口与结果验证 |
 | RSA:n、e、c、公钥、dp/dq 泄露、多组密文 | `rsa-attacks.md`、`rsa-attacks-2.md` |
 | AES/分组模式:ECB/CBC/CFB/OFB/GCM、padding oracle | `modern-ciphers.md` ~ `modern-ciphers-4.md` |
