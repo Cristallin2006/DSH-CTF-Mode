@@ -122,7 +122,7 @@ def run(root,jid):
         elif process is not None:clean=not group_running(process.pid) and not any(t.is_alive() for t in drainers)
     finally:
         result={'job':jid,'nonce':plan['nonce'],'worker':worker,'process':runtime['process'],'reason':reason,
-                'exit_code':code,'cleanup_confirmed':clean,'artifacts':stats,'at':time.time(),
+                'exit_code':code,'cleanup_confirmed':clean,'artifacts':stats,'at_unix_ns':str(time.time_ns()),
                 'target_accepted':None,'authority':'owned local process group only; no detached/remote-process coverage'}
         result['receipt_sha256']=digest(result)
         atomic(jobdir/'receipt.json',result)

@@ -46,7 +46,9 @@ def conflicts(left,right):
 def digest(value):return hashlib.sha256(canonical(value)).hexdigest()
 
 
-def file_identity(st):return [st.st_dev,st.st_ino,st.st_size,st.st_mtime_ns,st.st_ctime_ns]
+def file_identity(st):
+    # Opaque identity, not arithmetic. Preserve nanoseconds/inodes through JS JSON.
+    return [str(v) for v in (st.st_dev,st.st_ino,st.st_size,st.st_mtime_ns,st.st_ctime_ns)]
 
 
 def principal(value):
