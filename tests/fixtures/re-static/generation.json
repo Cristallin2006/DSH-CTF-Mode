@@ -1,0 +1,21 @@
+{
+  "source": "authored Java; generated DEX is a public regression, not held-out acceptance",
+  "java": "javac 21.0.12.1",
+  "d8": "D8 9.0.3-dev (build 750a21b4f4281b1f453b649e0b84f1ba9c04f4fc from go/r8bot (luci-r8-custom-ci-jammy-10-f6w9))",
+  "d8_jar_sha256": "e0c2803fbf9a1258051c3202daad46a2e00f33a0eb91258ac9fd373df0a832ce",
+  "outputs": {
+    "entry": {
+      "sha256": "49e544e701dac5cac36088aae433a89b04fe6f17e82b1dbb6fafc3944f989f32",
+      "bytes": 1276
+    },
+    "other": {
+      "sha256": "7b5b41cab7d2399c62df77cb8a2e3b4016436a576dbbd3c6692a8978449fd348",
+      "bytes": 708
+    },
+    "other-alt": {
+      "sha256": "0263f9a5501736335d9a7cf9f0565ee2563600b8c5bccad6c8e6c678145f3339",
+      "bytes": 708
+    }
+  },
+  "device_operations": 0
+}

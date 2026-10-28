@@ -38,6 +38,16 @@
 
 Linux 故障验收：`python3 tests/re-owner.py`。原生本地适配器验收随 `python3 tests/run.py --native` 执行，不调用真实模型或 Android。
 
+## 第三批：DEX 索引与只读静动关联
+
+复用已配置的 Androguard/JADX，补齐 SDK 原生路径发现，提供多 DEX 的完整方法身份、指令、字段/字符串使用点和编码引用索引。重载、重复 ZIP 条目与同名定义分别保留；查询分页，大字段可读取完整原件，解析失败明确标为部分覆盖。详见 [DEX 静态索引](../skills/android-re/references/dex-static-index.md)。
+
+`re_correlate.py` 保存观察来源哈希，复用 ELF 坐标转换或精确 DEX 方法身份生成查询。`ReEvidenceSnapshot.java` 只读当前 Ghidra 程序，核对原文件哈希、真实文件映射/DEX lookup、当前字节与导出前后修改计数。关联区分匹配、歧义、过期、字节/rebase 冲突和未定位；不等于已验证运行身份或目标接受。详见 [只读关联](../skills/re-dynamic/references/static-correlation.md)。
+
+不自动启动设备或注册新的控制工具，不扩大 Solver 授权，不修改 Ghidra 注释/符号/字节，不自动发布记忆。没有固定分析路线、强制双源检查或累计方法数量限制。CLI 可直接前台使用；大型可恢复工作才按需选已有 owner。
+
+验收：`python3 tests/re-static.py --required-backend`，原生材料/前台查询接线随 `python3 tests/run.py --native` 执行。真实 Ghidra 验收使用独立自有 ELF/DEX 项目；不把宿主样本当作 ART/ClassLoader 设备通过。
+
 ## 后续阶段：契约先于设备操作
 
 以下设备、事件流与静态回写仍是后续约定。本地进程取消已实现；不提前暴露设备 attach、远端 cancel 或回写工具。

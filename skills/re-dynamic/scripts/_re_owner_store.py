@@ -6,7 +6,7 @@ from pathlib import Path
 import sqlite3
 import time
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from _re_evidence import canonical, read_json, directory
 
 ACTIVE = ('accepted','launching','running','cancel_requested','cleanup_unknown')
@@ -101,7 +101,10 @@ def binding(config,p,launch=False):
 def task_still_running(state,p):
     """Worker follows task/target invalidation, not the model's idle state."""
     try:
-        with sqlite3.connect((Path(state)/'state.sqlite3').as_uri()+'?mode=ro',uri=True,timeout=1) as con:
+        # mode=rw permits SQLite's own hot-journal recovery after a metadata
+        # writer crashes. SQL remains query-only; never create or edit tasks.
+        with closing(sqlite3.connect((Path(state)/'state.sqlite3').as_uri()+'?mode=rw',uri=True,timeout=1)) as con:
+            con.execute('PRAGMA query_only=ON')
             row=con.execute('SELECT data FROM tasks WHERE id=?',(p['task'],)).fetchone()
             if not row or json.loads(row[0])['status']!='running':return False
             if con.execute('SELECT task FROM sessions WHERE id=?',(p['owner'],)).fetchone()!=(p['task'],):return False
@@ -120,7 +123,7 @@ def task_still_running(state,p):
 
 def register_job(state,p,job,status):
     # Only additive lifecycle metadata; no task/work/target mutation.
-    with sqlite3.connect(Path(state)/'state.sqlite3',timeout=5) as con:
+    with closing(sqlite3.connect(Path(state)/'state.sqlite3',timeout=5)) as con, con:
         con.execute('CREATE TABLE IF NOT EXISTS analysis_native_jobs(id TEXT PRIMARY KEY,task TEXT NOT NULL,owner TEXT NOT NULL,data TEXT NOT NULL)')
         key='re-owner:'+job['registry']+':'+job['id']
         data={'kind':'re_owner','registry':job['registry'],'job_id':job['id'],'status':status,

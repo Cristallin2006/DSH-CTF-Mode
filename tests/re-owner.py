@@ -19,7 +19,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'skills/re-dynamic/scripts'))
 if sys.platform!='linux':sys.exit('Managed RE owner tests require Linux')
 from re_owner import rpc
-from _re_owner_store import identity, resource, conflicts, Store
+from _re_owner_store import identity, resource, conflicts, Store, task_still_running, register_job
 from _re_owner_worker import atomic, group_running
 
 
@@ -169,6 +169,24 @@ class OwnerContracts(unittest.TestCase):
     def test_unknown_fields_and_unconfigured_backend_refused(self):
         with self.assertRaises(ValueError):self.call('submit',{'operation_id':'x','backend':'local','arguments':[],'principal':self.p})
         with self.assertRaisesRegex(ValueError,'Backend unavailable'):self.submit(backend='missing')
+    def test_scope_reader_recovers_committed_state_after_writer_crash(self):
+        code="import sqlite3,sys,time; c=sqlite3.connect(sys.argv[1]); c.execute('PRAGMA cache_size=1'); c.execute('BEGIN EXCLUSIVE'); c.execute('UPDATE tasks SET data=? WHERE id=?', ('{\"status\":\"paused\",\"padding\":\"'+'x'*200000+'\"}', 't1')); print('ready',flush=True); time.sleep(120)"
+        writer=subprocess.Popen([sys.executable,'-c',code,str(self.state/'state.sqlite3')],stdout=subprocess.PIPE,text=True)
+        try:
+            self.assertEqual(writer.stdout.readline().strip(),'ready');writer.kill();writer.wait()
+            self.assertTrue(task_still_running(self.state,self.p),'Uncommitted paused state must roll back; committed task is still running')
+        finally:
+            if writer.poll() is None:writer.kill();writer.wait()
+            writer.stdout.close()
+    def test_repeated_scope_reads_and_registrations_close_connections(self):
+        import gc
+        gc.collect();gc.disable();before=len(list(Path('/proc/self/fd').iterdir()))
+        try:
+            for _ in range(30):
+                self.assertTrue(task_still_running(self.state,self.p))
+                register_job(self.state,self.p,{'registry':'fd-contract','id':'test','owner_root':str(self.root)},'finished')
+            self.assertLessEqual(len(list(Path('/proc/self/fd').iterdir()))-before,2)
+        finally:gc.enable();gc.collect()
     def test_interrupted_old_work_cannot_continue_after_resume(self):
         run={'state':'enabled','targets':self.p['targets'],'epoch':'e1'};w={'child':'c1','role':'solver','epoch':'e1','state':'running','tools':['dsh_re_experiment']};self.db.execute('INSERT INTO orch_runs VALUES(?,?,?)',('t1',json.dumps(run),'p1'));self.db.execute('INSERT INTO orch_work VALUES(?,?,?)',('t1','w1',json.dumps(w)));self.db.commit()
         p={**self.p,'actor':'c1','work':'w1','role':'solver'};j=self.submit(p=p);self.running(j);w['state']='interrupted';self.db.execute('UPDATE orch_work SET data=?',(json.dumps(w),));self.db.commit();self.assertEqual(self.settled(j)['state'],'cancelled')

@@ -98,6 +98,8 @@
 
 jadx、apkanalyzer / adb / aapt2 / apksigner（Android SDK）、androguard，以及按当前样本选择的 emulator/测试设备。apktool/baksmali 等按需发现，反编译结果可与字节码交叉核对；工具是否存在以当前路径和解释器为准。模拟器是独立运行后端，x86_64 行为不自动证明 ARM/真机语义。
 
+DEX 方法/引用索引与能力发现入口为 `android-re/scripts/dex_index.py`；解释器/工具可显式配置，见 [DEX 静态索引](skills/android-re/references/dex-static-index.md)。已保存观察与 Ghidra 的只读字节关联见 [静态关联](skills/re-dynamic/references/static-correlation.md)。
+
 ## 已知不装项(选型决策记录)
 
 | 工具 | 不装原因 | 替代 |

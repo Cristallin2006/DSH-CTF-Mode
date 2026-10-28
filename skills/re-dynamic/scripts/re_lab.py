@@ -12,7 +12,7 @@ import sys
 from _re_evidence import read_file, read_json, map_address, store_file, verify_record
 
 
-TOOLS = ('adb','emulator','frida','frida-ps','jadx','java','javac','ghidra-rpc','lldb')
+TOOLS = ('adb','emulator','frida','frida-ps','jadx','apkanalyzer','aapt2','dexdump','d8','java','javac','ghidra-rpc','lldb')
 
 
 def inspect_python(path):
@@ -27,7 +27,7 @@ def inspect_python(path):
     if p == Path(sys.executable).absolute():
         roots += [Path(v) for v in sys.path if v and Path(v).name in ('site-packages','dist-packages')]
     packages = {}
-    for name in ('frida','frida_tools','qiling','pyghidra'):
+    for name in ('frida','frida_tools','qiling','pyghidra','androguard'):
         matches = []
         for package_root in dict.fromkeys(roots):
             if not package_root.is_dir():
