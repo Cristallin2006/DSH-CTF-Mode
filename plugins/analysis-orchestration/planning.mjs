@@ -28,11 +28,12 @@ export function preflight(e,w,agent){
   let plan;try{plan=executionPlan(w.execution_plan);}catch(error){return {ok:false,missing:[error.message],coverage:'undeclared'};}
   const tools=e.effectiveTools(w),missing=[];
   for(const r of plan.requirements)if(!r.any_of.some(n=>(plan.kind==='materials'||!['skill','dsh_solver_feedback'].includes(n))&&tools.includes(n)&&e.ctx.tools.get(n,agent)))missing.push({purpose:r.purpose,any_of:r.any_of});
-  if(plan.kind==='resource')missing.push({reason:'Resource mutation requires a compatible resource adapter with exact identity, generation and shared-use checks; generic shell is not such an adapter'});
+  const managed=!!e.ctx.get?.('reExperiments')&&tools.includes('dsh_re_experiment')&&tools.every(n=>['skill','dsh_solver_feedback','dsh_re_experiment'].includes(n));
+  if(plan.kind==='resource'&&!managed)missing.push({reason:'Resource mutation requires a compatible resource adapter with exact identity, generation and shared-use checks; generic shell is not such an adapter'});
   // Neither generic shell nor the current HTTP-only control mode can promise
   // per-action accounting for these executable native children.
   if(plan.limits.length)missing.push({reason:'Hard execution limits require a compatible mediated adapter; arbitrary Solver tools are not counted',units:plan.limits.map(l=>l.unit)});
-  return {ok:!missing.length,kind:plan.kind,missing,coverage:{tools:'declared requirements checked against granted/native tools; not proof of reachability',limits:plan.limits.length?'unsupported':'not_requested',resources:plan.kind==='resource'?'unsupported; mutation blocked':'cooperative only; no universal close interception'}};
+  return {ok:!missing.length,kind:plan.kind,missing,coverage:{tools:'declared requirements checked against granted/native tools; not proof of reachability',limits:plan.limits.length?'unsupported':'not_requested',resources:plan.kind==='resource'?(managed?'configured local process groups and declared resources; shared owner root only':'unsupported; mutation blocked'):'cooperative only; no universal close interception'}};
 }
 export function lineage(o){
   const result={assignment_kind:o.assignment_kind??'primary'};

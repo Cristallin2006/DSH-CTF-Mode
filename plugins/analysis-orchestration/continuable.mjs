@@ -69,12 +69,13 @@ export class Continuable {
   }
   async release(r,id,reason,preserve=false){
     const e=this.e;let w=e.store.work(r.task,id),item=e.active.get(id);
-    if(!item){if(live.has(w.state))throw Error('Cleanup belongs to a previous host; inspect and recover first');if(!preserve){w.state=w.state==='pending'?'retired':'cancelled';w.diagnostic=reason;e.store.saveWork(w);e.store.event(r,id,'retired',{reason});}return;}
+    if(!item){if(live.has(w.state))throw Error('Cleanup belongs to a previous host; inspect and recover first');const before=w.state;w.state='stopping';e.store.saveWork(w);try{await e.ctx.get?.('reExperiments')?.drain(r.task,null,r.owner,id);}catch(error){w.state='cleanup_unknown';e.store.saveWork(w);throw error;}w.state=preserve?before:before==='pending'?'retired':'cancelled';if(!preserve){w.diagnostic=reason;e.store.event(r,id,'retired',{reason});}e.store.saveWork(w);return;}
     if(item.closing)return item.closing;
     const previous=w.state,wasLive=live.has(previous);w.state='stopping';e.store.saveWork(w);clearTimeout(item.timer);item.controller.abort(reason);
     item.closing=(async()=>{
       try{
         await item.completion;await e.ctx.subagents.drainContinuableChildren(item.parentAgent,[item.child]);
+        await e.ctx.get?.('reExperiments')?.drain(r.task,null,r.owner,id);
         w=e.store.work(r.task,id);w.state=preserve&&!wasLive?previous:'cancelled';w.diagnostic=preserve&&!wasLive?w.diagnostic:reason;w.guidance_waiting_until=null;w.finished??=Date.now();e.store.saveWork(w);e.store.event(r,id,'child_released',{state:w.state,reason});e.materials.forget(item.child);e.children.delete(item.child);e.active.delete(id);
       }catch(error){w=e.store.work(r.task,id);w.state='cleanup_unknown';w.diagnostic=short(error);e.store.saveWork(w);throw error;}
     })();

@@ -20,6 +20,7 @@ jobs:
       - run: python3 tests/recovery.py
       - run: python3 tests/knowledge-contracts.py
       - run: python3 tests/dynamic-tools.py
+      - run: python3 tests/re-owner.py
       - run: python3 tests/re-lab-contract.py
       - run: python3 tests/re-lab-host.py --required-host
       - run: python3 tests/protocol-tools.py

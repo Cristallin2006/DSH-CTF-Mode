@@ -18,6 +18,17 @@ spec.loader.exec_module(setup)
 
 
 class InstallerTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform == 'linux', 'Managed RE bridge requires Linux')
+    def test_re_bridge_is_opt_in_and_does_not_edit_profiles(self):
+        home=Path(tempfile.gettempdir())/('dsh-re-install-contract-'+__import__('uuid').uuid4().hex)
+        with patch.object(setup,'ROOT',ROOT):default=setup.plan(home,'full')
+        self.assertNotIn('plugins/re-workbench/index.mjs',default)
+        with patch.object(setup,'ROOT',ROOT):selected=setup.plan(home,'full',re_owner_root='/tmp/explicit-re-owner',re_realm='test')
+        self.assertIn('plugins/re-workbench/index.mjs',selected)
+        overlay=json.loads(selected['launch/re-workbench.patch.json'])
+        self.assertEqual(overlay[0]['insert'][0]['config']['realm'],'test')
+        self.assertFalse(any(p.startswith('profiles/') for p in selected))
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix='dsh-setup-test-')
         self.addCleanup(self.temporary.cleanup)

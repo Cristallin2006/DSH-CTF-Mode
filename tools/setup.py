@@ -112,10 +112,11 @@ def native_preset(home, native_root=None):
             'launch/ctf-native.patch.json': overlay(home, native_ui=True)}
 
 
-def plan(home, mode, preset=None, ctf_mode='auto', native=False, native_root=None):
+def plan(home, mode, preset=None, ctf_mode='auto', native=False, native_root=None, re_owner_root=None, re_realm=None):
     folders = ['skills']
     if mode == 'full':
         folders += ['runtime/analysis-v1', 'plugins/analysis-hooks-sandbox', 'plugins/analysis-memory', 'plugins/analysis-orchestration', 'plugins/ctf-mode', 'dsh-hooks']
+        if re_owner_root:folders.append('plugins/re-workbench')
         if native:
             folders.append('plugins/ctf-ui')
     result = {}
@@ -141,6 +142,10 @@ def plan(home, mode, preset=None, ctf_mode='auto', native=False, native_root=Non
         except OSError as error:
             raise ValueError('Cannot read required public source file: ' + rel) from error
     if mode == 'full':
+        if re_owner_root:
+            if not Path(re_owner_root).is_absolute() or not re_realm:raise ValueError('RE owner needs absolute shared root and explicit realm')
+            if 'plugins/re-workbench/index.mjs' not in result:raise ValueError('RE workbench missing from install manifest')
+            result['launch/re-workbench.patch.json']=encoded([{'insert':[{'id':'re-workbench','name':(home/'plugins/re-workbench/index.mjs').as_uri(),'config':{'enabled':True,'stateRoot':str(home/'analysis-state'),'ownerRoot':str(re_owner_root),'realm':re_realm}}]}])
         result['hooks/analysis_hook.py'] = result.pop('dsh-hooks/analysis_hook.py')
         result['hooks/hooks.json'] = hooks_config(home)
         result['launch/ctf-orchestration.patch.json'] = overlay(home)
@@ -204,6 +209,8 @@ def main():
     parser.add_argument('--native-preset', choices=['ctf'], help='install a custom native CTF card and separate host/UI overlay; requires full')
     parser.add_argument('--native-root', help='installed DSH package root, for cloning its native Standard composition')
     parser.add_argument('--ctf-mode', choices=['auto', 'solo', 'orchestrated'], default='auto')
+    parser.add_argument('--re-owner-root', help='opt-in managed RE bridge to an independently configured shared Linux owner root; full mode only')
+    parser.add_argument('--re-realm', help='explicit realm alias configured at that owner; no owner is started automatically')
     parser.add_argument('--apply', action='store_true', help='default is a genuinely read-only preview')
     parser.add_argument('--replace', action='store_true', help='back up and replace conflicting files; never deletes unlisted files')
     args = parser.parse_args()
@@ -217,11 +224,12 @@ def main():
         raise ValueError('Full mode requires native Linux storage (not /mnt). Use WSL and a Linux DSH_HOME.')
     if (args.preset or args.native_preset) and args.mode != 'full':
         raise ValueError('CTF preset requires --mode full')
+    if (args.re_owner_root or args.re_realm) and (args.mode!='full' or not args.re_owner_root or not args.re_realm):raise ValueError('RE bridge requires full mode, --re-owner-root and --re-realm together')
     if args.preset and args.native_preset:
         raise ValueError('Choose the legacy process overlay or the native session preset, not both')
     if args.native_preset and args.ctf_mode != 'auto':
         raise ValueError('The native preset uses soft preferences in CTF settings; --ctf-mode pins only the legacy process overlay')
-    changes = plan(home, args.mode, args.preset, args.ctf_mode, bool(args.native_preset), args.native_root)
+    changes = plan(home, args.mode, args.preset, args.ctf_mode, bool(args.native_preset), args.native_root,args.re_owner_root,args.re_realm)
     conflicts = [rel for rel in changes if destination(home, rel).exists() and rel != 'hooks/hooks.json']
     value = {'ok': True, 'mode': args.mode, 'applied': False, 'home': str(home), 'changed_files': len(changes),
              'conflicting_files': conflicts, 'profile_edits': False, 'service_restart': False, 'model_calls': 0,

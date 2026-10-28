@@ -38,6 +38,8 @@ GDB 用于断点、内存与控制流；Frida 用于真实进程插桩；Qiling 
 
 ## 按需资料
 
+需要跨返回或连接中断保留本地实验，且已显式启用 owner 时，按需读取 [持久实验与共享资源](references/re-owner.md)。普通前台分析没有新增前置步骤。
+
 | 文件 | 何时读 |
 |---|---|
 | [状态指纹差分](references/state-fingerprint-oracle.md) | 已有结构化报告与模型逐字段核对，或需要受限 CALL 副本实验及证据边界 |
