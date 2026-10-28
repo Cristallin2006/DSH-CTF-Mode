@@ -13,7 +13,7 @@
 | 裸 blob / shellcode / 指令流解码器（无导入、无 I/O） | `scripts/emulate_blob.py`（见 §4） |
 | 需要真实 Win32/libc API 行为、最终交付验证 | Wine / 真机（re-dynamic） |
 
-**独立验证引擎排序**（re-dynamic §4⑤ 独立性排序）：**Wine > 真机 > 第二套自写实现 ≫ 另一个 Unicorn harness**——Qiling 底层也是 Unicorn，不构成独立引擎；自写 harness + Qiling 交叉 ≠ 铁律 10 要求的两个独立来源。没有 Wine 时的正确兜底是按汇编用纯 Python 重实现第二套模型交叉比对，不是再套一个 Unicorn。
+**交叉验证的适用范围**：依据当前命题选择真实进程、Wine、其他引擎或独立实现。涉及 Windows 运行时、异常或缓解策略时优先核对相应原生语义；纯字节/算术问题可用不同实现与已知向量。Qiling 与 Unicorn 共享基础，另写一个 harness 可能复用同一错误；Wine 或自写模型也各有假设。记录共享来源和覆盖范围，不规定固定引擎排序或必须凑足某个来源数量。
 
 ## 2. 可套用骨架（伪代码级，结构完整）
 

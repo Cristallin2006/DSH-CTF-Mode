@@ -33,6 +33,7 @@ CTF and security analysis skills for [DeepSeek Harness (DSH)](https://github.com
 - **Local Pwn:** [SQLite extensions](skills/pwn-exploit/references/sqlite-extension.md), [seccomp evidence](skills/pwn-exploit/references/seccomp-evidence.md), [multi-stage experiments](skills/pwn-exploit/references/multi-stage-local.md).
 - **Runtimes and lifetimes:** [Bundled runtimes](skills/pwn-exploit/references/bundled-runtime.md), [mallocng](skills/pwn-exploit/references/mallocng-evidence.md), [libxml2](skills/pwn-exploit/references/libxml2-state-lifetime.md), [nginx modules](skills/ghidra-static/references/nginx-module-analysis.md).
 - **Windows:** [User-mode analysis](skills/pwn-exploit/references/windows-pwn.md), [native debug observation](skills/re-dynamic/references/windows-debug-channel.md).
+- **Experimental branch workbench:** [Passive discovery, coordinates, saved evidence and MCP host checks](docs/RE-WORKBENCH.md). Device control and static writes have separate acceptance stages.
 
 Choose topics for the current question. The host delivers required skills and references in full; other skills remain discoverable. See the [changelog](CHANGELOG.md) for details.
 

@@ -33,7 +33,8 @@ try{
   ['web-elixir-beam','Phoenix Plug Ecto','ctf-web','elixir-beam-web'],
   ['beam-artifacts','BEAM IFF LitT ETF','re-triage','beam-artifacts'],
   ['crc-oracle','CRC 等长差分','ctf-crypto','crc-oracle-contracts'],
-  ['evidence-chunks','分块文件 缺口 重叠','re-triage','evidence-chunks']]){
+  ['evidence-chunks','分块文件 缺口 重叠','re-triage','evidence-chunks'],
+  ['re-workbench','passive reverse workbench','re-dynamic','re-workbench']]){
   assert((await run(a,'search',{query,kind:'reference'})).items.some(v=>v.id===id));
   let full='',offset=0,snapshot;do{const p=await run(a,'read_reference',{id,offset,max_bytes:2048,...snapshot?{snapshot}:{}});full+=p.text;offset=p.next_offset;snapshot=p.snapshot;}while(offset!==null);
   assert.equal(full,fs.readFileSync(base+'/skills/'+skill+'/references/'+ref+'.md','utf8'));

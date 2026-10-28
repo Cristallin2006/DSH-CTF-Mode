@@ -4,11 +4,11 @@ import path from 'node:path';
 
 // Lifecycle metadata lives in the existing analysis database; ctx.jobs owns execution.
 export class NativeJobs {
-  constructor(state,jobs,{drainMs=5000}={}){
+  constructor(state,jobs,{drainMs=5000,external=()=>null}={}){
     this.db=new DatabaseSync(path.join(state,'state.sqlite3'));this.db.exec('PRAGMA busy_timeout=8000');
     this.db.exec(`CREATE TABLE IF NOT EXISTS analysis_job_scopes(owner TEXT PRIMARY KEY,task TEXT NOT NULL,data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS analysis_native_jobs(id TEXT PRIMARY KEY,task TEXT NOT NULL,owner TEXT NOT NULL,data TEXT NOT NULL);`);
-    this.jobs=jobs;this.host=randomUUID();this.active=new Map();this.pending=new Map();this.changing=new Set();this.drainMs=drainMs;this.closed=false;
+    this.jobs=jobs;this.external=external;this.host=randomUUID();this.active=new Map();this.pending=new Map();this.changing=new Set();this.drainMs=drainMs;this.closed=false;
   }
   q(sql,...args){return this.db.prepare(sql).get(...args);}
   all(sql,...args){return this.db.prepare(sql).all(...args);}
@@ -91,6 +91,8 @@ export class NativeJobs {
     }
   }
   async drain(task,target=null,owner=null){
+    const externalRows=this.all('SELECT owner,data FROM analysis_native_jobs WHERE task=?',task).map(r=>({...r,data:JSON.parse(r.data)})).filter(r=>r.data.kind==='re_owner'&&(!target||r.data.target_basis?.some(t=>t.id===target))&&(!owner||r.owner===owner)&&['launching','running','stopping','cleanup_unknown'].includes(r.data.status));
+    if(externalRows.length){const adapter=this.external();if(!adapter)throw Error('Managed RE owner adapter unavailable; cleanup unconfirmed');await adapter.drain(task,target,owner);}
     if([...this.pending.entries()].some(([o,p])=>p.scope.task===task&&(!owner||owner===o)&&(!target||target===p.scope.target_id)))throw Error('Pending background launch; retry lifecycle change after launch settles');
     const rows=this.all('SELECT id,owner,data FROM analysis_native_jobs WHERE task=?',task).map(r=>({...r,data:JSON.parse(r.data)})).filter(r=>(!target||r.data.target_id===target)&&(!owner||r.owner===owner)&&['launching','running','stopping','cleanup_unknown'].includes(r.data.status));
     for(const r of rows){

@@ -328,7 +328,7 @@ def require_native_jobs_stopped(con, task, target=None):
     rows = con.execute('SELECT data FROM analysis_native_jobs WHERE task=?', (task,))
     for row in rows:
         data = json.loads(row[0])
-        if (target is None or data.get('target_id') == target) and data.get('status') in ('launching', 'running', 'stopping', 'cleanup_unknown'):
+        if (target is None or data.get('target_id') == target or data.get('kind') == 're_owner' and any(t['id'] == target for t in data.get('target_basis', []))) and data.get('status') in ('launching', 'running', 'stopping', 'cleanup_unknown'):
             raise ValueError('native job cleanup unconfirmed; use owning host analysis_session lifecycle entry before changing task/target')
 
 def check_lease(con, resource, task, owner, token):

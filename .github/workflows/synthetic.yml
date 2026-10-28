@@ -20,6 +20,12 @@ jobs:
       - run: python3 tests/recovery.py
       - run: python3 tests/knowledge-contracts.py
       - run: python3 tests/dynamic-tools.py
+      - run: python3 tests/re-owner.py
+      - run: python3 -m venv /tmp/dsh-dex-ci
+      - run: /tmp/dsh-dex-ci/bin/pip install androguard==4.1.4
+      - run: AGPY=/tmp/dsh-dex-ci/bin/python python3 tests/re-static.py --required-backend
+      - run: python3 tests/re-lab-contract.py
+      - run: python3 tests/re-lab-host.py --required-host
       - run: python3 tests/protocol-tools.py
       - run: python3 tests/windows-pwn.py
       - run: python3 tests/local-analysis.py

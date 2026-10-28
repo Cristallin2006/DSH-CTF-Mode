@@ -17,7 +17,7 @@ names = ['ctf-ui', 'ctf-mode', 'contract', 'feedback', 'invariants', 'resolution
 if '--native' in sys.argv:
     if not env.get('DSH_NATIVE_PACKAGE_ROOT'):
         sys.exit('Set DSH_NATIVE_PACKAGE_ROOT to the installed @deepseek-ai/dsh package')
-    names += ['ctf-ui-native', 'ctf-mode-native', 'reload', 'idle-native', 'native', 'skill-delivery', 'reference-delivery', 'collaborative-native', 'target-map-native', 'long-tasks-native', 'knowledge-library-native', 'windows-materials-native', 'local-materials-native', 'relay-materials-native', 'runtime-materials-native', 'web-materials-native', 'beam-materials-native']
+    names += ['ctf-ui-native', 'ctf-mode-native', 'reload', 'idle-native', 'native', 'skill-delivery', 'reference-delivery', 'collaborative-native', 'target-map-native', 'long-tasks-native', 'knowledge-library-native', 'windows-materials-native', 'local-materials-native', 'relay-materials-native', 'runtime-materials-native', 'web-materials-native', 'beam-materials-native', 're-lab-materials-native', 're-owner-native', 're-static-native']
 for name in names:
     print(f'Running {name}', flush=True)
     result = subprocess.run([node, str(root/'tests'/f'{name}.mjs')], cwd=root, env=env)

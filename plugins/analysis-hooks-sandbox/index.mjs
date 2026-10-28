@@ -23,7 +23,7 @@ export async function apply(ctx,config){
   const pluginRoot=fs.realpathSync(config.pluginRoot);
   const python='/usr/bin/python3';
   const runtime=path.join(root,'runtime/analysis-v1/session.py');
-  const lifecycle=new NativeJobs(state,ctx.get('jobs'));
+  const lifecycle=new NativeJobs(state,ctx.get('jobs'),{external:()=>ctx.get('reExperiments')});
   ctx.on('tools/execute',(exec,next)=>lifecycle.around(exec,next));
   if(lifecycle.jobs)ctx.effect(()=>lifecycle.jobs.onJobsChanged(owner=>{if(owner)lifecycle.adopt(owner);}), 'analysis: native job registration');
   const timer=setInterval(()=>void lifecycle.tick().catch(()=>{health.jobLifecycleError=true;}),250);

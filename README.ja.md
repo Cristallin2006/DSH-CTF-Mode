@@ -33,6 +33,7 @@
 - **ローカル Pwn**：[SQLite 拡張](skills/pwn-exploit/references/sqlite-extension.md)、[seccomp の証拠](skills/pwn-exploit/references/seccomp-evidence.md)、[多段階実験](skills/pwn-exploit/references/multi-stage-local.md)。
 - **ランタイムと寿命**：[同梱ランタイム](skills/pwn-exploit/references/bundled-runtime.md)、[mallocng](skills/pwn-exploit/references/mallocng-evidence.md)、[libxml2](skills/pwn-exploit/references/libxml2-state-lifetime.md)、[nginx モジュール](skills/ghidra-static/references/nginx-module-analysis.md)。
 - **Windows**：[ユーザーモード解析](skills/pwn-exploit/references/windows-pwn.md)、[ネイティブデバッグ観察](skills/re-dynamic/references/windows-debug-channel.md)。
+- **実験ブランチのワークベンチ**：[受動的な検出、アドレス照合、証拠保存、MCP ホスト検査](docs/RE-WORKBENCH.md)。デバイス操作と静的書き込みは段階ごとに検証します。
 
 現在の問題に応じて資料を選びます。必須スキルと選択した参照資料はホストが全文を渡し、他のスキルも引き続き検索できます。詳しくは[変更履歴](CHANGELOG.md)をご覧ください。
 
